@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
+import { PaginatedRequest } from "../middleware/pagination.middleware";
 import {
-  SuperCategory,
   Category,
-  SubCategory,
   ProductCategory,
+  SubCategory,
+  SuperCategory,
 } from "../models/product.model";
 
 // SuperCategory CRUD
@@ -20,14 +21,11 @@ export const createSuperCategory = async (
 };
 
 export const getAllSuperCategories = async (
-  _req: Request,
+  req: PaginatedRequest,
   res: Response
 ): Promise<any> => {
   try {
-    const superCategories = await SuperCategory.findAll({
-      where: { isActive: true },
-    });
-    res.status(200).json(superCategories);
+    res.status(200).json(req.paginatedData);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch super categories" });
   }
@@ -99,14 +97,11 @@ export const createCategory = async (
 };
 
 export const getAllCategories = async (
-  _req: Request,
+  req: PaginatedRequest,
   res: Response
 ): Promise<any> => {
   try {
-    const categories = await Category.findAll({
-      where: { isActive: true },
-    });
-    res.status(200).json(categories);
+    res.status(200).json(req.paginatedData);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch categories" });
   }
@@ -172,14 +167,11 @@ export const createSubCategory = async (
 };
 
 export const getAllSubCategories = async (
-  _req: Request,
+  req: PaginatedRequest,
   res: Response
 ): Promise<any> => {
   try {
-    const subCategories = await SubCategory.findAll({
-      where: { isActive: true },
-    });
-    res.status(200).json(subCategories);
+    res.status(200).json(req.paginatedData);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch sub categories" });
   }
@@ -248,14 +240,11 @@ export const createProductCategory = async (
 };
 
 export const getAllProductCategories = async (
-  _req: Request,
+  req: PaginatedRequest,
   res: Response
 ): Promise<any> => {
   try {
-    const productCategories = await ProductCategory.findAll({
-      where: { isActive: true },
-    });
-    res.status(200).json(productCategories);
+    res.status(200).json(req.paginatedData);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch product categories" });
   }

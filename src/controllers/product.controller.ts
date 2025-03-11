@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { PaginatedRequest } from "../middleware/pagination.middleware";
 import {
   Category,
   Product,
@@ -6,6 +7,7 @@ import {
   SubCategory,
   SuperCategory,
 } from "../models/product.model";
+import User from "../models/user.model";
 
 // Create Product
 export const createProduct = async (
@@ -28,12 +30,11 @@ export const createProduct = async (
 
 // Get All Active and InActive Product List For Admin only
 export const getAllProducts = async (
-  req: Request,
+  req: PaginatedRequest,
   res: Response
 ): Promise<any> => {
   try {
-    const products = await Product.findAll();
-    res.status(200).json(products);
+    res.status(200).json(req.paginatedData);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch products" });
   }
@@ -41,38 +42,11 @@ export const getAllProducts = async (
 
 // Get All Products with Category Names based on the id
 export const getAllProductsByRolesAndId = async (
-  req: Request,
+  req: PaginatedRequest,
   res: Response
 ): Promise<any> => {
   try {
-    const { userId } = req.query;
-
-    const products = await Product.findAll({
-      where: { userId: Number(userId) },
-      include: [
-        {
-          model: SuperCategory,
-          as: "superCategory",
-          attributes: ["id", "name", "isActive"],
-        },
-        {
-          model: Category,
-          as: "category",
-          attributes: ["id", "name", "isActive"],
-        },
-        {
-          model: SubCategory,
-          as: "subCategory",
-          attributes: ["id", "name", "isActive"],
-        },
-        {
-          model: ProductCategory,
-          as: "productCategory",
-          attributes: ["id", "name", "isActive"],
-        },
-      ],
-    });
-    res.status(200).json(products);
+    res.status(200).json(req.paginatedData);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch products" });
   }
@@ -85,8 +59,35 @@ export const getProductById = async (
 ): Promise<any> => {
   try {
     const { userId } = req.query;
+    const productId = req.params.id;
+
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+
+    const user = await User.findOne({
+      where: { id: Number(userId) },
+      attributes: ["userType"], // Fetch only userType
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const whereCondition: any = { id: productId };
+
+    if (user.userType === "admin") {
+      // Admin can access all products (active & inactive)
+    } else if (user.userType === "normal") {
+      whereCondition.isActive = true; // Normal users can only see active products
+    } else if (user.userType === "vendor") {
+      whereCondition.userId = Number(userId); // Vendors can see only their own products
+    } else {
+      return res.status(403).json({ error: "Unauthorized user type" });
+    }
+
     const product = await Product.findOne({
-      where: { id: req.params.id, isActive: true, userId: Number(userId) }, // Ensure only active products are fetched
+      where: whereCondition,
       include: [
         {
           model: SuperCategory,
@@ -111,10 +112,11 @@ export const getProductById = async (
       ],
     });
 
-    if (!product)
+    if (!product) {
       return res
         .status(404)
         .json({ error: "Product not found or not authorized" });
+    }
 
     res.status(200).json(product);
   } catch (error) {

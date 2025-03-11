@@ -1,15 +1,9 @@
+import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
+import jwt from "jsonwebtoken";
+import { PaginatedRequest } from "../middleware/pagination.middleware";
 import User from "../models/user.model";
 const nodemailer = require("nodemailer");
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import {
-  Category,
-  Product,
-  ProductCategory,
-  SubCategory,
-  SuperCategory,
-} from "../models/product.model";
 
 // Configure email transport
 const transporter = nodemailer.createTransport({
@@ -153,39 +147,14 @@ const resendOtp = async (req: Request, res: Response): Promise<any> => {
 };
 
 const getAllProductsList = async (
-  req: Request,
+  req: PaginatedRequest,
   res: Response
 ): Promise<any> => {
   try {
-    const products = await Product.findAll({
-      where: { isActive: true },
-      include: [
-        {
-          model: SuperCategory,
-          as: "superCategory",
-          attributes: ["id", "name", "isActive"],
-        },
-        {
-          model: Category,
-          as: "category",
-          attributes: ["id", "name", "isActive"],
-        },
-        {
-          model: SubCategory,
-          as: "subCategory",
-          attributes: ["id", "name", "isActive"],
-        },
-        {
-          model: ProductCategory,
-          as: "productCategory",
-          attributes: ["id", "name", "isActive"],
-        },
-      ],
-    });
-    res.status(200).json(products);
+    res.status(200).json(req.paginatedData);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch products" });
   }
 };
 
-export { loginUser, registerUser, verifyOtp, resendOtp, getAllProductsList };
+export { getAllProductsList, loginUser, registerUser, resendOtp, verifyOtp };
