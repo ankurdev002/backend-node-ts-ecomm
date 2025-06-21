@@ -3,16 +3,7 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { PaginatedRequest } from "../middleware/pagination.middleware";
 import User from "../models/user.model";
-const nodemailer = require("nodemailer");
-
-// Configure email transport
-const transporter = nodemailer.createTransport({
-  service: "Gmail",
-  auth: {
-    user: process.env.EMAIL_USER, // Your Gmail
-    pass: process.env.EMAIL_PASS, // App password
-  },
-});
+import { sendMail } from "../utils/sendEmail";
 
 const registerUser = async (req: Request, res: Response): Promise<any> => {
   try {
@@ -24,15 +15,24 @@ const registerUser = async (req: Request, res: Response): Promise<any> => {
 
     // Check if user already exists
     const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
+
+    // Case 1: User exists and is already verified
+    if (existingUser && existingUser?.isVerified) {
       return res.status(400).json({ error: "Email already registered" });
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
 
+    // OTP for verification
     const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
 
-    // Create user with OTP (Not verified yet)
-    const user = await User.create({
+    // Case 2: User exists but not verified - resend OTP
+    if (existingUser && !existingUser.isVerified) {
+      await sendMail(email, "verify", otp);
+      return res.status(200).json({ message: "OTP re-sent for verification." });
+    }
+
+    // Case 3: New user - hash password and create user
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await User.create({
       name,
       email,
       password: hashedPassword,
@@ -41,15 +41,9 @@ const registerUser = async (req: Request, res: Response): Promise<any> => {
       isVerified: false,
     });
 
-    // Send OTP to user's email
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: "Verify Your Account",
-      text: `Your OTP for account verification is: ${otp}`,
-    });
+    await sendMail(email, "verify", otp);
 
-    res
+    return res
       .status(201)
       .json({ message: "User registered! OTP sent for verification." });
   } catch (error) {
@@ -133,12 +127,7 @@ const resendOtp = async (req: Request, res: Response): Promise<any> => {
     await user.save();
 
     // Send new OTP via email
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: "Resend OTP - Verify Your Account",
-      text: `Your new OTP is: ${otp}`,
-    });
+    await sendMail(email, "verify", otp);
 
     res.status(200).json({ message: "New OTP sent to your email!" });
   } catch (error) {

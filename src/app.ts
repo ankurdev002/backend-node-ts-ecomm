@@ -28,7 +28,7 @@ app.use(
 );
 
 app.get("/", (req: Request, res: Response) => {
-  res.send("API is running...");
+  res.send("API IS UP...");
 });
 
 export default app;

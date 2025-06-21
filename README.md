@@ -55,8 +55,8 @@ ecommerce-backend/
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/your-repo/ecommerce-backend.git
-   cd ecommerce-backend
+   git clone https://github.com/ankurdev002/backend-node-ts-ecomm.git
+   cd backend-node-ts-ecomm
    ```
 2. Install dependencies:
    ```sh
@@ -66,7 +66,7 @@ ecommerce-backend/
    ```env
    PORT=5000
    DB_HOST=localhost
-   DB_USER=your_user
+   DB_USERNAME=postgres
    DB_PASSWORD=your_password
    DB_NAME=ecommerce_db
    JWT_SECRET=your_secret
