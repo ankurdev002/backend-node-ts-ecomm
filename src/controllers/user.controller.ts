@@ -4,8 +4,13 @@ import jwt from "jsonwebtoken";
 import { PaginatedRequest } from "../middleware/pagination.middleware";
 import User from "../models/user.model";
 import { sendMail } from "../utils/sendEmail";
+import { validationResult } from "express-validator";
 
 const registerUser = async (req: Request, res: Response): Promise<any> => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
   try {
     const { name, email, password, userType } = req.body;
 
@@ -52,6 +57,10 @@ const registerUser = async (req: Request, res: Response): Promise<any> => {
 };
 
 const loginUser = async (req: Request, res: Response): Promise<any> => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ where: { email } });
@@ -83,6 +92,10 @@ const loginUser = async (req: Request, res: Response): Promise<any> => {
 };
 
 const verifyOtp = async (req: Request, res: Response): Promise<any> => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
   try {
     const { email, otp } = req.body;
 
@@ -107,6 +120,10 @@ const verifyOtp = async (req: Request, res: Response): Promise<any> => {
 };
 
 const resendOtp = async (req: Request, res: Response): Promise<any> => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
   try {
     const { email } = req.body;
 
