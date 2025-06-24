@@ -269,9 +269,7 @@ export const updateProductCategory = async (
   res: Response
 ): Promise<any> => {
   try {
-    const productCategory = await ProductCategory.findOne({
-      where: { id: req.params.id, isActive: true },
-    });
+    const productCategory = await ProductCategory.findByPk(req.params.id);
     if (!productCategory)
       return res.status(404).json({ error: "product category not found" });
 
