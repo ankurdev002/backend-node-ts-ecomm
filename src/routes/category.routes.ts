@@ -27,7 +27,7 @@ import {
   ProductCategory,
   SubCategory,
   SuperCategory,
-} from "../models/product.model";
+} from "../models/category.model";
 
 const router = Router();
 

@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import { PaginatedRequest } from "../middleware/pagination.middleware";
+import { PaginatedRequest } from "../types/common.type";
 import {
   Category,
   ProductCategory,
   SubCategory,
   SuperCategory,
-} from "../models/product.model";
+} from "../models/category.model";
 
 // SuperCategory CRUD
 export const createSuperCategory = async (

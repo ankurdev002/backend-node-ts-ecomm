@@ -5,7 +5,9 @@ import morgan from "morgan";
 import userRoutes from "./routes/user.routes";
 import productRoutes from "./routes/product.routes";
 import categoryRoutes from "./routes/category.routes";
-import { authenticateUser, authorizeRole } from "./middleware/auth.middleware";
+import { authenticateUser } from "./middleware/auth.middleware";
+import { authorizeRole } from "./middleware/role.middleware";
+import { USER_ROLES } from "./constants/user_roles";
 
 const app = express();
 app.use(express.json());
@@ -17,13 +19,13 @@ app.use("/api/users", userRoutes);
 app.use(
   "/api/admin/cat",
   authenticateUser,
-  authorizeRole(["admin"]),
+  authorizeRole([USER_ROLES.ADMIN]),
   categoryRoutes
 );
 app.use(
   "/api/products",
   authenticateUser,
-  authorizeRole(["admin", "vendor"]),
+  authorizeRole([USER_ROLES.ADMIN, USER_ROLES.VENDOR]),
   productRoutes
 );
 

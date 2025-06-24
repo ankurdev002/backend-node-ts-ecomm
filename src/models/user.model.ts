@@ -1,12 +1,13 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../config/db";
+import { USER_ROLES, UserRole } from "../constants/user_roles";
 
 interface UserAttributes {
   id?: Number;
   name: string;
   email: string;
   password: string;
-  userType: "admin" | "vendor" | "delivery" | "normal";
+  userType: UserRole;
   currentOtp?: string | null; // Stores OTP, nullable
   isVerified: boolean; // Checks if user is verified
   createdAt?: Date;
@@ -23,7 +24,7 @@ class User
   public name!: string;
   public email!: string;
   public password!: string;
-  public userType!: "admin" | "vendor" | "delivery" | "normal";
+  public userType!: UserRole;
   public currentOtp!: string | null;
   public isVerified!: boolean;
   public readonly createdAt!: Date;
@@ -52,9 +53,14 @@ User.init(
       allowNull: false, // Ensure it's required
     },
     userType: {
-      type: DataTypes.ENUM("admin", "vendor", "delivery", "normal"),
+      type: DataTypes.ENUM(
+        USER_ROLES.ADMIN,
+        USER_ROLES.VENDOR,
+        USER_ROLES.DELIVERY,
+        USER_ROLES.NORMAL
+      ),
       allowNull: false,
-      defaultValue: "normal", // Default user type
+      defaultValue: USER_ROLES.NORMAL, // Default user type
     },
     currentOtp: {
       type: DataTypes.STRING(6), // 6-digit OTP

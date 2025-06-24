@@ -1,19 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { FindOptions, Model, ModelStatic, WhereOptions } from "sequelize";
-
-export interface PaginatedRequest extends Request {
-  paginatedData?: {
-    pagination: {
-      totalResults: number;
-      totalPages: number;
-      currentPage: number;
-      pageSize: number;
-      hasNextPage: boolean;
-      hasPrevPage: boolean;
-    };
-    data: any[];
-  };
-}
+import { PaginatedRequest } from "../types/common.type";
 
 const paginate =
   (

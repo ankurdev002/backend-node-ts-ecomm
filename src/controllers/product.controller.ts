@@ -1,13 +1,14 @@
 import { Request, Response } from "express";
-import { PaginatedRequest } from "../middleware/pagination.middleware";
+import { PaginatedRequest } from "../types/common.type";
 import {
   Category,
-  Product,
   ProductCategory,
   SubCategory,
   SuperCategory,
-} from "../models/product.model";
+} from "../models/category.model";
+import { Product } from "../models/product.model";
 import User from "../models/user.model";
+import { USER_ROLES } from "../constants/user_roles";
 
 // Create Product
 export const createProduct = async (
@@ -76,11 +77,11 @@ export const getProductById = async (
 
     const whereCondition: any = { id: productId };
 
-    if (user.userType === "admin") {
+    if (user.userType === USER_ROLES.ADMIN) {
       // Admin can access all products (active & inactive)
-    } else if (user.userType === "normal") {
+    } else if (user.userType === USER_ROLES.NORMAL) {
       whereCondition.isActive = true; // Normal users can only see active products
-    } else if (user.userType === "vendor") {
+    } else if (user.userType === USER_ROLES.VENDOR) {
       whereCondition.userId = Number(userId); // Vendors can see only their own products
     } else {
       return res.status(403).json({ error: "Unauthorized user type" });
