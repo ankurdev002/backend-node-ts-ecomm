@@ -1,14 +1,6 @@
 import { Request, Response } from "express";
+import * as productService from "../services/product.service";
 import { PaginatedRequest } from "../types/common.type";
-import {
-  Category,
-  ProductCategory,
-  SubCategory,
-  SuperCategory,
-} from "../models/category.model";
-import { Product } from "../models/product.model";
-import User from "../models/user.model";
-import { USER_ROLES } from "../constants/user_roles";
 
 // Create Product
 export const createProduct = async (
@@ -16,14 +8,9 @@ export const createProduct = async (
   res: Response
 ): Promise<any> => {
   try {
-    const { userId, ...productData } = req.body;
-
-    if (!userId) {
-      return res.status(400).json({ error: "User ID is required" });
-    }
-
-    const product = await Product.create({ userId, ...productData });
-    res.status(201).json(product);
+    const { userId, ...data } = req.body;
+    const result = await productService.createProduct(userId, data);
+    res.status(201).json(result);
   } catch (error) {
     res.status(500).json({ error: "Failed to create product" });
   }
@@ -60,64 +47,20 @@ export const getProductById = async (
 ): Promise<any> => {
   try {
     const { userId } = req.query;
-    const productId = req.params.id;
 
     if (!userId) {
       return res.status(400).json({ error: "userId is required" });
     }
 
-    const user = await User.findOne({
-      where: { id: Number(userId) },
-      attributes: ["userType"], // Fetch only userType
-    });
+    const product = await productService.getProductByIdWithRole(
+      req.params.id,
+      Number(userId)
+    );
 
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    const whereCondition: any = { id: productId };
-
-    if (user.userType === USER_ROLES.ADMIN) {
-      // Admin can access all products (active & inactive)
-    } else if (user.userType === USER_ROLES.NORMAL) {
-      whereCondition.isActive = true; // Normal users can only see active products
-    } else if (user.userType === USER_ROLES.VENDOR) {
-      whereCondition.userId = Number(userId); // Vendors can see only their own products
-    } else {
-      return res.status(403).json({ error: "Unauthorized user type" });
-    }
-
-    const product = await Product.findOne({
-      where: whereCondition,
-      include: [
-        {
-          model: SuperCategory,
-          as: "superCategory",
-          attributes: ["id", "name", "isActive"],
-        },
-        {
-          model: Category,
-          as: "category",
-          attributes: ["id", "name", "isActive"],
-        },
-        {
-          model: SubCategory,
-          as: "subCategory",
-          attributes: ["id", "name", "isActive"],
-        },
-        {
-          model: ProductCategory,
-          as: "productCategory",
-          attributes: ["id", "name", "isActive"],
-        },
-      ],
-    });
-
-    if (!product) {
+    if (!product)
       return res
         .status(404)
-        .json({ error: "Product not found or not authorized" });
-    }
+        .json({ error: "Product not found or unauthorized" });
 
     res.status(200).json(product);
   } catch (error) {
@@ -131,18 +74,13 @@ export const updateProduct = async (
   res: Response
 ): Promise<any> => {
   try {
-    const { userId } = req.body;
-    const product = await Product.findOne({
-      where: { id: req.params.id, userId },
-    });
-
-    if (!product)
-      return res.status(404).json({
-        error: "Product not found or not authorized for updating the product",
-      });
-
-    await product.update(req.body);
-    res.status(200).json(product);
+    const { userId, ...data } = req.body;
+    const result = await productService.updateProduct(
+      req.params.id,
+      userId,
+      data
+    );
+    res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ error: "Failed to update product" });
   }
@@ -155,17 +93,7 @@ export const deleteProduct = async (
 ): Promise<any> => {
   try {
     const { userId } = req.query;
-    const product = await Product.findOne({
-      where: { id: req.params.id, userId: Number(userId) },
-    });
-
-    if (!product)
-      return res.status(404).json({
-        error: "Product not found or not authorized for deleting the product",
-      });
-
-    await product.update({ isActive: false }); // Soft delete by marking inactive
-    // await product.destroy(); // for hard delete the product
+    await productService.deleteProduct(req.params.id, Number(userId));
     res.status(200).json({ message: "Product deleted" });
   } catch (error) {
     res.status(500).json({ error: "Failed to delete product" });
