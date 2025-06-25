@@ -1,11 +1,7 @@
 import { Request, Response } from "express";
+import { ProductCategory } from "../models/category.model";
+import * as categoryService from "../services/category.service";
 import { PaginatedRequest } from "../types/common.type";
-import {
-  Category,
-  ProductCategory,
-  SubCategory,
-  SuperCategory,
-} from "../models/category.model";
 
 // SuperCategory CRUD
 export const createSuperCategory = async (
@@ -13,8 +9,8 @@ export const createSuperCategory = async (
   res: Response
 ): Promise<any> => {
   try {
-    const superCategory = await SuperCategory.create(req.body);
-    res.status(201).json(superCategory);
+    const result = await categoryService.createSuperCategory(req.body);
+    res.status(201).json(result);
   } catch (error) {
     res.status(500).json({ error: "Failed to create super category" });
   }
@@ -36,15 +32,10 @@ export const getSuperCategoryById = async (
   res: Response
 ): Promise<any> => {
   try {
-    const superCategory = await SuperCategory.findOne({
-      where: {
-        id: req.params.id,
-        isActive: true,
-      },
-    });
-    if (!superCategory)
+    const result = await categoryService.getSuperCategoryById(req.params.id);
+    if (!result)
       return res.status(404).json({ error: "Super category not found" });
-    res.status(200).json(superCategory);
+    res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch super category" });
   }
@@ -55,12 +46,11 @@ export const updateSuperCategory = async (
   res: Response
 ): Promise<any> => {
   try {
-    const superCategory = await SuperCategory.findByPk(req.params.id);
-    if (!superCategory)
-      return res.status(404).json({ error: "Super category not found" });
-
-    await superCategory.update(req.body);
-    res.status(200).json(superCategory);
+    const result = await categoryService.updateSuperCategory(
+      req.params.id,
+      req.body
+    );
+    res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ error: "Failed to update super category" });
   }
@@ -71,12 +61,7 @@ export const deleteSuperCategory = async (
   res: Response
 ): Promise<any> => {
   try {
-    const superCategory = await SuperCategory.findByPk(req.params.id);
-    if (!superCategory)
-      return res.status(404).json({ error: "Super category not found" });
-
-    await superCategory.update({ isActive: false }); // Soft delete
-    // await superCategory.destroy();
+    await categoryService.softDeleteSuperCategory(req.params.id);
     res.status(200).json({ message: "Super category deleted" });
   } catch (error) {
     res.status(500).json({ error: "Failed to delete super category" });
@@ -89,8 +74,8 @@ export const createCategory = async (
   res: Response
 ): Promise<any> => {
   try {
-    const category = await Category.create(req.body);
-    res.status(201).json(category);
+    const result = await categoryService.createCategory(req.body);
+    res.status(201).json(result);
   } catch (error) {
     res.status(500).json({ error: "Failed to create category" });
   }
@@ -112,11 +97,9 @@ export const getCategoryById = async (
   res: Response
 ): Promise<any> => {
   try {
-    const category = await Category.findOne({
-      where: { id: req.params.id, isActive: true },
-    });
-    if (!category) return res.status(404).json({ error: "Category not found" });
-    res.status(200).json(category);
+    const result = await categoryService.getCategoryById(req.params.id);
+    if (!result) return res.status(404).json({ error: "Category not found" });
+    res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch category" });
   }
@@ -127,11 +110,11 @@ export const updateCategory = async (
   res: Response
 ): Promise<any> => {
   try {
-    const category = await Category.findByPk(req.params.id);
-    if (!category) return res.status(404).json({ error: "Category not found" });
-
-    await category.update(req.body);
-    res.status(200).json(category);
+    const result = await categoryService.updateCategory(
+      req.params.id,
+      req.body
+    );
+    res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ error: "Failed to update category" });
   }
@@ -142,11 +125,7 @@ export const deleteCategory = async (
   res: Response
 ): Promise<any> => {
   try {
-    const category = await Category.findByPk(req.params.id);
-    if (!category) return res.status(404).json({ error: "Category not found" });
-
-    await category.update({ isActive: false }); // Soft delete
-    // await category.destroy();
+    await categoryService.softDeleteCategory(req.params.id);
     res.status(200).json({ message: "Category deleted" });
   } catch (error) {
     res.status(500).json({ error: "Failed to delete category" });
@@ -159,8 +138,8 @@ export const createSubCategory = async (
   res: Response
 ): Promise<any> => {
   try {
-    const subCategory = await SubCategory.create(req.body);
-    res.status(201).json(subCategory);
+    const result = await categoryService.createSubCategory(req.body);
+    res.status(201).json(result);
   } catch (error) {
     res.status(500).json({ error: "Failed to create sub category" });
   }
@@ -182,12 +161,10 @@ export const getSubCategoryById = async (
   res: Response
 ): Promise<any> => {
   try {
-    const subCategory = await SubCategory.findOne({
-      where: { id: req.params.id, isActive: true },
-    });
-    if (!subCategory)
-      return res.status(404).json({ error: "Sub category not found" });
-    res.status(200).json(subCategory);
+    const result = await categoryService.getSubCategoryById(req.params.id);
+    if (!result)
+      return res.status(404).json({ error: "Sub Category not found" });
+    res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch sub category" });
   }
@@ -198,12 +175,11 @@ export const updateSubCategory = async (
   res: Response
 ): Promise<any> => {
   try {
-    const subCategory = await SubCategory.findByPk(req.params.id);
-    if (!subCategory)
-      return res.status(404).json({ error: "Sub category not found" });
-
-    await subCategory.update(req.body);
-    res.status(200).json(subCategory);
+    const result = await categoryService.updateSubCategory(
+      req.params.id,
+      req.body
+    );
+    res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ error: "Failed to update sub category" });
   }
@@ -214,13 +190,8 @@ export const deleteSubCategory = async (
   res: Response
 ): Promise<any> => {
   try {
-    const subCategory = await SubCategory.findByPk(req.params.id);
-    if (!subCategory)
-      return res.status(404).json({ error: "Sub category not found" });
-
-    await subCategory.update({ isActive: false }); // Soft delete
-    // await subCategory.destroy();
-    res.status(200).json({ message: "Sub category deleted" });
+    await categoryService.softDeleteSubCategory(req.params.id);
+    res.status(200).json({ message: "Sub Category deleted" });
   } catch (error) {
     res.status(500).json({ error: "Failed to delete sub category" });
   }
@@ -232,8 +203,8 @@ export const createProductCategory = async (
   res: Response
 ): Promise<any> => {
   try {
-    const productCategory = await ProductCategory.create(req.body);
-    res.status(201).json(productCategory);
+    const result = await categoryService.createProductCategory(req.body);
+    res.status(201).json(result);
   } catch (error) {
     res.status(500).json({ error: "Failed to create product category" });
   }
@@ -255,10 +226,10 @@ export const getProductCategoryById = async (
   res: Response
 ): Promise<any> => {
   try {
-    const productCategory = await ProductCategory.findByPk(req.params.id);
-    if (!productCategory)
+    const result = await categoryService.getProductCategoryById(req.params.id);
+    if (!result)
       return res.status(404).json({ error: "Product category not found" });
-    res.status(200).json(productCategory);
+    res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch product category" });
   }
@@ -269,12 +240,11 @@ export const updateProductCategory = async (
   res: Response
 ): Promise<any> => {
   try {
-    const productCategory = await ProductCategory.findByPk(req.params.id);
-    if (!productCategory)
-      return res.status(404).json({ error: "product category not found" });
-
-    await productCategory.update(req.body);
-    res.status(200).json(productCategory);
+    const result = await categoryService.updateProductCategory(
+      req.params.id,
+      req.body
+    );
+    res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ error: "Failed to update product category" });
   }
@@ -285,12 +255,7 @@ export const deleteProductCategory = async (
   res: Response
 ): Promise<any> => {
   try {
-    const productCategory = await ProductCategory.findByPk(req.params.id);
-    if (!productCategory)
-      return res.status(404).json({ error: "product category not found" });
-
-    await productCategory.update({ isActive: false }); // Soft delete
-    // await productCategory.destroy();
+    await categoryService.softDeleteProductCategory(req.params.id);
     res.status(200).json({ message: "Product category deleted" });
   } catch (error) {
     res.status(500).json({ error: "Failed to delete product category" });
