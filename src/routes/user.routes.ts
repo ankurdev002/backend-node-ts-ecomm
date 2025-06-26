@@ -6,12 +6,13 @@ import {
   registerUser,
   resendOtp,
   verifyOtp,
+  getProfile,
+  updateProfile,
 } from "../controllers/user.controller";
 import paginate from "../middleware/pagination.middleware";
-import {
-  rateLimitLogin
-} from "../middleware/rateLimit.middleware";
+import { rateLimitLogin } from "../middleware/rateLimit.middleware";
 import { validate } from "../middleware/validate.middleware";
+import { authenticateUser } from "../middleware/auth.middleware";
 import { Product } from "../models/product.model";
 import {
   loginUserSchema,
@@ -40,6 +41,11 @@ router.post(
   validate(resendOtpSchema),
   resendOtp
 );
+
+// Profile routes
+router.get("/profile", authenticateUser, getProfile);
+router.put("/profile", authenticateUser, updateProfile);
+
 router.get(
   "/all-products-list",
   paginate(Product, [], { isActive: true }),

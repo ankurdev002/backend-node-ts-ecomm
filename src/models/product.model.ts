@@ -1,10 +1,10 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../config/db";
 import {
-    Category,
-    ProductCategory,
-    SubCategory,
-    SuperCategory,
+  Category,
+  ProductCategory,
+  SubCategory,
+  SuperCategory,
 } from "./category.model";
 
 // Define Product
@@ -54,6 +54,14 @@ class Product
   public userId!: number;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+
+  // Association getters
+  public readonly inventory?: any;
+  public readonly vendor?: any;
+  public readonly cartItems?: any[];
+  public readonly orderItems?: any[];
+  public readonly reviews?: any[];
+  public readonly wishlistItems?: any[];
 }
 
 Product.init(
@@ -143,4 +151,3 @@ Product.belongsTo(SubCategory, {
 });
 
 export { Category, Product, ProductCategory, SubCategory, SuperCategory };
-

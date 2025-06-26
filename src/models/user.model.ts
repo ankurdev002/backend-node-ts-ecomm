@@ -10,6 +10,9 @@ interface UserAttributes {
   userType: UserRole;
   currentOtp?: string | null; // Stores OTP, nullable
   isVerified: boolean; // Checks if user is verified
+  isActive: boolean; // Checks if user account is active
+  phone?: string; // User phone number
+  avatar?: string; // User profile picture URL
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -27,8 +30,22 @@ class User
   public userType!: UserRole;
   public currentOtp!: string | null;
   public isVerified!: boolean;
+  public isActive!: boolean;
+  public phone?: string;
+  public avatar?: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+
+  // Association getters
+  public readonly addresses?: any[];
+  public readonly cartItems?: any[];
+  public readonly orders?: any[];
+  public readonly vendorOrders?: any[];
+  public readonly deliveryOrders?: any[];
+  public readonly products?: any[];
+  public readonly reviews?: any[];
+  public readonly notifications?: any[];
+  public readonly wishlistItems?: any[];
 }
 
 User.init(
@@ -70,6 +87,19 @@ User.init(
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false, // Default is false, user needs to verify
+    },
+    isActive: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true, // Default is active
+    },
+    phone: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+    },
+    avatar: {
+      type: DataTypes.TEXT,
+      allowNull: true,
     },
   },
   {

@@ -39,6 +39,7 @@ export const registerNewUser = async (
     userType,
     currentOtp: otp,
     isVerified: false,
+    isActive: false,
   });
 
   await sendMail(email, "verify", otp);
@@ -68,6 +69,7 @@ export const login = async (email: string, password: string) => {
 };
 
 export const verifyUserOtp = async (email: string, otp: string) => {
+  console.log(email, otp);
   const user = await User.findOne({ where: { email } });
   if (!user) throw new Error("User not found");
   if (user.currentOtp !== otp) throw new Error("Invalid OTP");
@@ -82,7 +84,7 @@ export const verifyUserOtp = async (email: string, otp: string) => {
 export const resendUserOtp = async (email: string) => {
   const user = await User.findOne({ where: { email } });
   if (!user) throw new Error("User not found");
-//   if (user.isVerified) throw new Error("User is already verified");
+  //   if (user.isVerified) throw new Error("User is already verified");
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   user.currentOtp = otp;
@@ -90,4 +92,43 @@ export const resendUserOtp = async (email: string) => {
 
   await sendMail(email, "verify", otp);
   return { message: "New OTP sent to your email!" };
+};
+
+export const getUserProfile = async (userId: number) => {
+  const user = await User.findByPk(userId, {
+    attributes: { exclude: ["password", "currentOtp"] },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  return user;
+};
+
+export const updateUserProfile = async (userId: number, updateData: any) => {
+  const user = await User.findByPk(userId);
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  // Don't allow updating sensitive fields
+  const allowedFields = ["name", "phone", "firstName", "lastName"];
+  const filteredData: any = {};
+
+  for (const field of allowedFields) {
+    if (updateData[field] !== undefined) {
+      filteredData[field] = updateData[field];
+    }
+  }
+
+  await user.update(filteredData);
+
+  // Return user without sensitive data
+  const updatedUser = await User.findByPk(userId, {
+    attributes: { exclude: ["password", "currentOtp"] },
+  });
+
+  return updatedUser;
 };

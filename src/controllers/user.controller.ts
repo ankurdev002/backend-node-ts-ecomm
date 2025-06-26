@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { PaginatedRequest } from "../types/common.type";
+import { PaginatedRequest, AuthenticatedRequest } from "../types/common.type";
 import User from "../models/user.model";
 import { sendMail } from "../utils/sendEmail";
 import { validationResult } from "express-validator";
@@ -11,6 +11,8 @@ import {
   registerNewUser,
   resendUserOtp,
   verifyUserOtp,
+  getUserProfile,
+  updateUserProfile,
 } from "../services/user.service";
 
 const registerUser = async (req: Request, res: Response): Promise<any> => {
@@ -75,4 +77,70 @@ const getAllProductsList = async (
   }
 };
 
-export { getAllProductsList, loginUser, registerUser, resendOtp, verifyOtp };
+const getProfile = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<any> => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
+      });
+    }
+
+    const user = await getUserProfile(userId);
+
+    res.json({
+      success: true,
+      message: "Profile retrieved successfully",
+      data: user,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const updateProfile = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<any> => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
+      });
+    }
+
+    const updatedUser = await updateUserProfile(userId, req.body);
+
+    res.json({
+      success: true,
+      message: "Profile updated successfully",
+      data: updatedUser,
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export {
+  getAllProductsList,
+  loginUser,
+  registerUser,
+  resendOtp,
+  verifyOtp,
+  getProfile,
+  updateProfile,
+};
