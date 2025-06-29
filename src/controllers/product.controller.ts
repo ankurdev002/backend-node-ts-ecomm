@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import * as productService from "../services/product.service";
-import { PaginatedRequest } from "../types/common.type";
+import { AuthenticatedRequest, PaginatedRequest } from "../types/common.type";
 
 // Create Product
 export const createProduct = async (
@@ -42,11 +42,11 @@ export const getAllProductsByRolesAndId = async (
 
 // Get Product by ID with Category Names
 export const getProductById = async (
-  req: Request,
+  req: AuthenticatedRequest,
   res: Response
 ): Promise<any> => {
   try {
-    const { userId } = req.query;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(400).json({ error: "userId is required" });
@@ -88,11 +88,11 @@ export const updateProduct = async (
 
 // Delete Product
 export const deleteProduct = async (
-  req: Request,
+  req: AuthenticatedRequest,
   res: Response
 ): Promise<any> => {
   try {
-    const { userId } = req.query;
+    const userId = req.user?.id;
     await productService.deleteProduct(req.params.id, Number(userId));
     res.status(200).json({ message: "Product deleted" });
   } catch (error) {

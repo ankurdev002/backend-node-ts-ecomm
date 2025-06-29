@@ -34,7 +34,6 @@ export const updateShippingStatus = async (
 
     const shipping = await Shipping.findOne({
       where: { id: parseInt(shippingId) },
-      include: [{ model: Order, as: "order" }],
     });
 
     if (!shipping) {
@@ -43,6 +42,9 @@ export const updateShippingStatus = async (
         message: "Shipping record not found",
       });
     }
+
+    // Get order separately to avoid association issues
+    const order = await Order.findByPk(shipping.orderId);
 
     // Update shipping details
     if (status) shipping.status = status;
@@ -54,27 +56,31 @@ export const updateShippingStatus = async (
     await shipping.save();
 
     // Update order status if delivered
-    if (status === "delivered" && (shipping as any).order) {
-      (shipping as any).order.status = "delivered";
-      await (shipping as any).order.save();
+    if (status === "delivered" && order) {
+      order.status = "delivered";
+      await order.save();
 
       // Create notification
       await Notification.create({
-        userId: (shipping as any).order.userId,
+        userId: order.userId,
         title: "Order Delivered",
-        message: `Your order ${
-          (shipping as any).order.orderNumber
-        } has been delivered successfully.`,
+        message: `Your order ${order.orderNumber} has been delivered successfully.`,
         type: "shipping",
-        relatedId: (shipping as any).order.id,
+        relatedId: order.id,
         relatedType: "order",
       });
     }
 
+    // Return shipping with order data manually attached
+    const shippingWithOrder = {
+      ...shipping.toJSON(),
+      order: order ? order.toJSON() : null,
+    };
+
     res.json({
       success: true,
       message: "Shipping status updated successfully",
-      data: shipping,
+      data: shippingWithOrder,
     });
   } catch (error: any) {
     res.status(400).json({
@@ -91,9 +97,9 @@ export const getShippingInfo = async (
   try {
     const { orderId } = req.params;
 
+    // Get shipping without include to avoid association issues
     const shipping = await Shipping.findOne({
       where: { orderId: parseInt(orderId) },
-      include: [{ model: Order, as: "order" }],
     });
 
     if (!shipping) {
@@ -103,10 +109,19 @@ export const getShippingInfo = async (
       });
     }
 
+    // Get order separately
+    const order = await Order.findByPk(shipping.orderId);
+
+    // Return shipping with order data manually attached
+    const shippingWithOrder = {
+      ...shipping.toJSON(),
+      order: order ? order.toJSON() : null,
+    };
+
     res.json({
       success: true,
       message: "Shipping information retrieved successfully",
-      data: shipping,
+      data: shippingWithOrder,
     });
   } catch (error: any) {
     res.status(500).json({
@@ -123,9 +138,9 @@ export const trackShipment = async (
   try {
     const { trackingNumber } = req.params;
 
+    // Get shipping without include to avoid association issues
     const shipping = await Shipping.findOne({
       where: { trackingNumber },
-      include: [{ model: Order, as: "order" }],
     });
 
     if (!shipping) {
@@ -134,6 +149,9 @@ export const trackShipment = async (
         message: "Tracking number not found",
       });
     }
+
+    // Get order separately
+    const order = await Order.findByPk(shipping.orderId);
 
     // Calculate delivery progress
     const deliverySteps = [
@@ -183,7 +201,7 @@ export const trackShipment = async (
         estimatedDelivery: shipping.estimatedDelivery,
         actualDelivery: shipping.actualDelivery,
         deliveryInstructions: shipping.deliveryInstructions,
-        orderNumber: (shipping as any).order?.orderNumber,
+        orderNumber: order?.orderNumber,
         progress: deliverySteps,
       },
     });
@@ -217,19 +235,35 @@ export const getDeliveryAssignments = async (
       });
     }
 
-    const assignments = await Order.findAll({
+    // Get orders without include to avoid association issues
+    const orders = await Order.findAll({
       where: { deliveryPersonId: userId },
-      include: [
-        { model: Shipping, as: "shipping" },
-        { model: Address, as: "shippingAddress" },
-      ],
       order: [["createdAt", "DESC"]],
     });
+
+    // Fetch related data separately for each order
+    const ordersWithDetails = [];
+    for (const order of orders) {
+      // Get shipping info
+      const shipping = await Shipping.findOne({
+        where: { orderId: order.id },
+      });
+
+      // Get shipping address
+      const shippingAddress = await Address.findByPk(order.shippingAddressId);
+
+      // Combine all data
+      ordersWithDetails.push({
+        ...order.toJSON(),
+        shipping: shipping ? shipping.toJSON() : null,
+        shippingAddress: shippingAddress ? shippingAddress.toJSON() : null,
+      });
+    }
 
     res.json({
       success: true,
       message: "Delivery assignments retrieved successfully",
-      data: assignments,
+      data: ordersWithDetails,
     });
   } catch (error: any) {
     res.status(500).json({

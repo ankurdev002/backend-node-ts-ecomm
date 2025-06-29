@@ -2,13 +2,13 @@
 
 ## 📋 Overview
 
-This guide provides comprehensive testing instructions for all 60+ API endpoints in the e-commerce backend system.
+This guide provides comprehensive testing instructions for all 89+ API endpoints in the e-commerce backend system based on the actual implemented codebase.
 
 ## 🔧 Setup Instructions
 
 ### 1. Import Postman Collection
 
-- Import the `E-Commerce_API_Collection.postman_collection.json` file into Postman
+- Import the `E-Commerce_Complete_API_Collection.postman_collection.json` file into Postman
 - Set environment variables:
   - `base_url`: `http://localhost:5000/api`
   - `auth_token`: (will be auto-populated after login)
@@ -52,148 +52,226 @@ Content-Type: application/json
 
 ## 📱 API Endpoints by Category
 
+### 🔑 Authentication
+
+| Method | Endpoint            | Description   | Auth Required |
+| ------ | ------------------- | ------------- | ------------- |
+| POST   | `/users/register`   | Register user | ❌            |
+| POST   | `/users/login`      | Login user    | ❌            |
+| POST   | `/users/verify`     | Verify OTP    | ❌            |
+| POST   | `/users/resend-otp` | Resend OTP    | ❌            |
+
 ### 👤 User Management
 
-| Method | Endpoint            | Description      | Auth Required |
-| ------ | ------------------- | ---------------- | ------------- |
-| GET    | `/users/profile`    | Get user profile | ✅            |
-| PUT    | `/users/profile`    | Update profile   | ✅            |
-| POST   | `/users/verify-otp` | Verify OTP       | ❌            |
-| POST   | `/users/resend-otp` | Resend OTP       | ❌            |
+| Method | Endpoint                   | Description           | Auth Required |
+| ------ | -------------------------- | --------------------- | ------------- |
+| GET    | `/users/profile`           | Get user profile      | ✅            |
+| PUT    | `/users/profile`           | Update profile        | ✅            |
+| GET    | `/users/all-products-list` | Get products (public) | ❌            |
 
-### 🏷️ Categories
+### 🏷️ Category Management (Admin Only)
 
-| Method | Endpoint          | Description        | Auth Required |
-| ------ | ----------------- | ------------------ | ------------- |
-| GET    | `/categories`     | Get all categories | ❌            |
-| POST   | `/categories`     | Create category    | ✅ (Admin)    |
-| GET    | `/categories/:id` | Get category by ID | ❌            |
-| PUT    | `/categories/:id` | Update category    | ✅ (Admin)    |
-| DELETE | `/categories/:id` | Delete category    | ✅ (Admin)    |
+| Method | Endpoint                                 | Description             | Auth Required |
+| ------ | ---------------------------------------- | ----------------------- | ------------- |
+| POST   | `/admin/categories/super-category`       | Create super category   | ✅ (Admin)    |
+| GET    | `/admin/categories/super-categories`     | Get super categories    | ✅ (Admin)    |
+| GET    | `/admin/categories/super-category/:id`   | Get super category      | ✅ (Admin)    |
+| PUT    | `/admin/categories/super-category/:id`   | Update super category   | ✅ (Admin)    |
+| DELETE | `/admin/categories/super-category/:id`   | Delete super category   | ✅ (Admin)    |
+| POST   | `/admin/categories/category`             | Create category         | ✅ (Admin)    |
+| GET    | `/admin/categories/categories`           | Get categories          | ✅ (Admin)    |
+| GET    | `/admin/categories/category/:id`         | Get category by ID      | ✅ (Admin)    |
+| PUT    | `/admin/categories/category/:id`         | Update category         | ✅ (Admin)    |
+| DELETE | `/admin/categories/category/:id`         | Delete category         | ✅ (Admin)    |
+| POST   | `/admin/categories/sub-category`         | Create sub category     | ✅ (Admin)    |
+| GET    | `/admin/categories/sub-categories`       | Get sub categories      | ✅ (Admin)    |
+| GET    | `/admin/categories/sub-category/:id`     | Get sub category        | ✅ (Admin)    |
+| PUT    | `/admin/categories/sub-category/:id`     | Update sub category     | ✅ (Admin)    |
+| DELETE | `/admin/categories/sub-category/:id`     | Delete sub category     | ✅ (Admin)    |
+| POST   | `/admin/categories/product-category`     | Create product category | ✅ (Admin)    |
+| GET    | `/admin/categories/product-categories`   | Get product categories  | ✅ (Admin)    |
+| GET    | `/admin/categories/product-category/:id` | Get product category    | ✅ (Admin)    |
+| PUT    | `/admin/categories/product-category/:id` | Update product category | ✅ (Admin)    |
+| DELETE | `/admin/categories/product-category/:id` | Delete product category | ✅ (Admin)    |
 
-### 📦 Products
+### 📦 Product Management
 
-| Method | Endpoint        | Description       | Auth Required |
-| ------ | --------------- | ----------------- | ------------- |
-| GET    | `/products`     | Get all products  | ❌            |
-| POST   | `/products`     | Create product    | ✅ (Vendor)   |
-| GET    | `/products/:id` | Get product by ID | ❌            |
-| PUT    | `/products/:id` | Update product    | ✅ (Vendor)   |
-| DELETE | `/products/:id` | Delete product    | ✅ (Vendor)   |
+| Method | Endpoint             | Description              | Auth Required     |
+| ------ | -------------------- | ------------------------ | ----------------- |
+| POST   | `/products/create`   | Create product           | ✅ (Admin/Vendor) |
+| GET    | `/products/all-list` | Get all products (admin) | ✅ (Admin/Vendor) |
+| GET    | `/products/all`      | Get products by role     | ✅ (Admin/Vendor) |
+| GET    | `/products/:id`      | Get product by ID        | ✅ (Admin/Vendor) |
+| PUT    | `/products/:id`      | Update product           | ✅ (Admin/Vendor) |
+| DELETE | `/products/:id`      | Delete product           | ✅ (Admin/Vendor) |
 
 ### 🛒 Shopping Cart
 
-| Method | Endpoint        | Description      | Auth Required |
-| ------ | --------------- | ---------------- | ------------- |
-| GET    | `/cart`         | Get cart items   | ✅            |
-| POST   | `/cart/add`     | Add item to cart | ✅            |
-| PUT    | `/cart/:itemId` | Update cart item | ✅            |
-| DELETE | `/cart/:itemId` | Remove cart item | ✅            |
-| DELETE | `/cart/clear`   | Clear cart       | ✅            |
+| Method | Endpoint            | Description      | Auth Required |
+| ------ | ------------------- | ---------------- | ------------- |
+| GET    | `/cart`             | Get cart items   | ✅            |
+| POST   | `/cart/add`         | Add item to cart | ✅            |
+| PUT    | `/cart/:cartItemId` | Update cart item | ✅            |
+| DELETE | `/cart/:cartItemId` | Remove cart item | ✅            |
+| DELETE | `/cart`             | Clear cart       | ✅            |
+| GET    | `/cart/validate`    | Validate cart    | ✅            |
 
-### 📍 Addresses
-
-| Method | Endpoint                   | Description         | Auth Required |
-| ------ | -------------------------- | ------------------- | ------------- |
-| GET    | `/addresses`               | Get user addresses  | ✅            |
-| POST   | `/addresses`               | Create address      | ✅            |
-| GET    | `/addresses/:id`           | Get address by ID   | ✅            |
-| PUT    | `/addresses/:id`           | Update address      | ✅            |
-| DELETE | `/addresses/:id`           | Delete address      | ✅            |
-| PUT    | `/addresses/:id/default`   | Set default address | ✅            |
-| GET    | `/addresses/default/:type` | Get default address | ✅            |
-
-### 🛍️ Orders
-
-| Method | Endpoint             | Description            | Auth Required |
-| ------ | -------------------- | ---------------------- | ------------- |
-| GET    | `/orders`            | Get user orders        | ✅            |
-| POST   | `/orders`            | Create order from cart | ✅            |
-| GET    | `/orders/:id`        | Get order by ID        | ✅            |
-| PUT    | `/orders/:id/status` | Update order status    | ✅ (Vendor)   |
-| PUT    | `/orders/:id/cancel` | Cancel order           | ✅            |
-
-### 💳 Payments
+### 📍 Address Management
 
 | Method | Endpoint                        | Description         | Auth Required |
 | ------ | ------------------------------- | ------------------- | ------------- |
-| POST   | `/payments/initiate`            | Initiate payment    | ✅            |
-| POST   | `/payments/:id/callback`        | Payment callback    | ❌            |
-| POST   | `/payments/:id/stripe/callback` | Stripe callback     | ❌            |
-| POST   | `/payments/:id/paypal/callback` | PayPal callback     | ❌            |
-| POST   | `/payments/:id/refund`          | Refund payment      | ✅ (Admin)    |
-| GET    | `/payments/order/:orderId`      | Get order payments  | ✅            |
-| GET    | `/payments/:id`                 | Get payment details | ✅            |
+| POST   | `/addresses`                    | Create address      | ✅            |
+| GET    | `/addresses`                    | Get user addresses  | ✅            |
+| GET    | `/addresses/default/:type`      | Get default address | ✅            |
+| GET    | `/addresses/:addressId`         | Get address by ID   | ✅            |
+| PUT    | `/addresses/:addressId`         | Update address      | ✅            |
+| PUT    | `/addresses/:addressId/default` | Set default address | ✅            |
+| DELETE | `/addresses/:addressId`         | Delete address      | ✅            |
 
-### 📦 Shipping
+### 🛍️ Order Management
 
-| Method | Endpoint                          | Description            | Auth Required       |
-| ------ | --------------------------------- | ---------------------- | ------------------- |
-| GET    | `/shipping/order/:orderId`        | Get order shipping     | ✅                  |
-| PUT    | `/shipping/:id/status`            | Update shipping status | ✅ (Admin/Delivery) |
-| GET    | `/shipping/track/:trackingNumber` | Track shipment         | ❌                  |
+| Method | Endpoint                  | Description          | Auth Required |
+| ------ | ------------------------- | -------------------- | ------------- |
+| POST   | `/orders`                 | Create order         | ✅            |
+| GET    | `/orders`                 | Get user orders      | ✅            |
+| GET    | `/orders/status/:status`  | Get orders by status | ✅            |
+| GET    | `/orders/:orderId`        | Get order by ID      | ✅            |
+| PUT    | `/orders/:orderId`        | Update order status  | ✅            |
+| PUT    | `/orders/:orderId/cancel` | Cancel order         | ✅            |
 
-### ⭐ Reviews
+### 💳 Payment Processing
+
+| Method | Endpoint                               | Description         | Auth Required |
+| ------ | -------------------------------------- | ------------------- | ------------- |
+| POST   | `/payments/initiate`                   | Initiate payment    | ✅            |
+| POST   | `/payments/:paymentId/callback`        | Payment callback    | ❌            |
+| POST   | `/payments/:paymentId/stripe/callback` | Stripe callback     | ❌            |
+| POST   | `/payments/:paymentId/paypal/callback` | PayPal callback     | ❌            |
+| POST   | `/payments/:paymentId/refund`          | Refund payment      | ✅ (Admin)    |
+| GET    | `/payments/order/:orderId`             | Get order payments  | ✅            |
+| GET    | `/payments/:paymentId`                 | Get payment details | ✅            |
+
+### 📦 Shipping & Delivery
+
+| Method | Endpoint                          | Description              | Auth Required       |
+| ------ | --------------------------------- | ------------------------ | ------------------- |
+| PUT    | `/shipping/:shippingId/status`    | Update shipping status   | ✅ (Admin/Delivery) |
+| GET    | `/shipping/order/:orderId`        | Get shipping info        | ✅                  |
+| GET    | `/shipping/track/:trackingNumber` | Track shipment           | ❌                  |
+| GET    | `/shipping/delivery/assignments`  | Get delivery assignments | ✅ (Delivery)       |
+
+### ⭐ Reviews & Ratings
 
 | Method | Endpoint                      | Description         | Auth Required |
 | ------ | ----------------------------- | ------------------- | ------------- |
 | POST   | `/reviews`                    | Create review       | ✅            |
 | GET    | `/reviews/product/:productId` | Get product reviews | ❌            |
 | GET    | `/reviews/user`               | Get user reviews    | ✅            |
-| PUT    | `/reviews/:id`                | Update review       | ✅            |
-| DELETE | `/reviews/:id`                | Delete review       | ✅            |
+| PUT    | `/reviews/:reviewId`          | Update review       | ✅            |
+| DELETE | `/reviews/:reviewId`          | Delete review       | ✅            |
 
 ### 👨‍💼 Admin Panel
 
-| Method | Endpoint                  | Description        | Auth Required |
-| ------ | ------------------------- | ------------------ | ------------- |
-| GET    | `/admin/dashboard`        | Admin dashboard    | ✅ (Admin)    |
-| GET    | `/admin/users`            | Get all users      | ✅ (Admin)    |
-| PUT    | `/admin/users/:id/status` | Update user status | ✅ (Admin)    |
-| GET    | `/admin/orders`           | Get all orders     | ✅ (Admin)    |
-| GET    | `/admin/products`         | Get all products   | ✅ (Admin)    |
+| Method | Endpoint                      | Description        | Auth Required |
+| ------ | ----------------------------- | ------------------ | ------------- |
+| GET    | `/admin/dashboard`            | Admin dashboard    | ✅ (Admin)    |
+| GET    | `/admin/users`                | Get all users      | ✅ (Admin)    |
+| PUT    | `/admin/users/:userId/status` | Update user status | ✅ (Admin)    |
+| GET    | `/admin/orders`               | Get all orders     | ✅ (Admin)    |
+| GET    | `/admin/reports/revenue`      | Get revenue report | ✅ (Admin)    |
 
 ### 🏪 Vendor Panel
 
-| Method | Endpoint                    | Description         | Auth Required |
-| ------ | --------------------------- | ------------------- | ------------- |
-| GET    | `/vendor/dashboard`         | Vendor dashboard    | ✅ (Vendor)   |
-| GET    | `/vendor/products`          | Get vendor products | ✅ (Vendor)   |
-| GET    | `/vendor/orders`            | Get vendor orders   | ✅ (Vendor)   |
-| PUT    | `/vendor/orders/:id/status` | Update order status | ✅ (Vendor)   |
-| GET    | `/vendor/inventory`         | Inventory report    | ✅ (Vendor)   |
+| Method | Endpoint                         | Description          | Auth Required |
+| ------ | -------------------------------- | -------------------- | ------------- |
+| GET    | `/vendor/dashboard`              | Vendor dashboard     | ✅ (Vendor)   |
+| GET    | `/vendor/products`               | Get vendor products  | ✅ (Vendor)   |
+| GET    | `/vendor/orders`                 | Get vendor orders    | ✅ (Vendor)   |
+| PUT    | `/vendor/orders/:orderId/status` | Update order status  | ✅ (Vendor)   |
+| GET    | `/vendor/inventory/report`       | Get inventory report | ✅ (Vendor)   |
 
 ### 🚚 Delivery Panel
 
-| Method | Endpoint                 | Description             | Auth Required |
-| ------ | ------------------------ | ----------------------- | ------------- |
-| GET    | `/delivery/assignments`  | Get assigned deliveries | ✅ (Delivery) |
-| PUT    | `/delivery/:id/status`   | Update delivery status  | ✅ (Delivery) |
-| PUT    | `/delivery/:id/complete` | Complete delivery       | ✅ (Delivery) |
+| Method | Endpoint                           | Description            | Auth Required |
+| ------ | ---------------------------------- | ---------------------- | ------------- |
+| GET    | `/delivery/dashboard`              | Delivery dashboard     | ✅ (Delivery) |
+| GET    | `/delivery/orders`                 | Get assigned orders    | ✅ (Delivery) |
+| PUT    | `/delivery/orders/:orderId/status` | Update delivery status | ✅ (Delivery) |
+| GET    | `/delivery/route`                  | Get delivery route     | ✅ (Delivery) |
+
+### 📦 Inventory Management
+
+| Method | Endpoint                        | Description            | Auth Required     |
+| ------ | ------------------------------- | ---------------------- | ----------------- |
+| POST   | `/inventory/create`             | Create inventory       | ✅ (Admin/Vendor) |
+| GET    | `/inventory/product/:productId` | Get product inventory  | ✅ (Admin/Vendor) |
+| PUT    | `/inventory/product/:productId` | Update inventory       | ✅ (Admin/Vendor) |
+| POST   | `/inventory/restock/:productId` | Restock product        | ✅ (Admin/Vendor) |
+| GET    | `/inventory/low-stock`          | Get low stock products | ✅ (Admin/Vendor) |
+| GET    | `/inventory/out-of-stock`       | Get out of stock       | ✅ (Admin/Vendor) |
+| GET    | `/inventory/report`             | Get inventory report   | ✅ (Admin/Vendor) |
 
 ## 📝 Sample Payloads
+
+### Register User
+
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "password123",
+  "userType": "normal"
+}
+```
+
+### Create Super Category
+
+```json
+{
+  "name": "Electronics",
+  "description": "Electronic devices and gadgets"
+}
+```
+
+### Create Category
+
+```json
+{
+  "name": "Smartphones",
+  "description": "Mobile phones and accessories",
+  "superCategoryId": 1
+}
+```
 
 ### Create Product
 
 ```json
 {
-  "name": "MacBook Pro 16",
-  "description": "Apple MacBook Pro 16-inch with M2 chip",
-  "price": 2499.99,
+  "name": "iPhone 15 Pro",
+  "productCategoryId": 1,
+  "superCategoryId": 1,
   "categoryId": 1,
-  "images": ["image1.jpg", "image2.jpg"],
-  "specifications": {
-    "processor": "M2 Pro",
-    "memory": "16GB",
-    "storage": "512GB SSD"
-  },
-  "variants": [
+  "subCategoryId": 1,
+  "isActive": true,
+  "productType": "smartphone",
+  "userId": 2,
+  "pricing": [
     {
-      "name": "Space Gray",
-      "price": 2499.99,
-      "sku": "MBP16-SG-512"
+      "label": "Standard",
+      "price": 999.99,
+      "currency": "USD",
+      "currencySymbol": "$"
     }
-  ]
+  ],
+  "images": {
+    "black": ["https://example.com/image1.jpg"],
+    "white": ["https://example.com/image2.jpg"]
+  },
+  "attributes": {
+    "brand": "Apple",
+    "capacity": "128GB",
+    "power": "A17 Pro"
+  }
 }
 ```
 
@@ -204,8 +282,8 @@ Content-Type: application/json
   "productId": 1,
   "quantity": 2,
   "selectedVariant": {
-    "color": "Space Gray",
-    "storage": "512GB"
+    "color": "black",
+    "storage": "128GB"
   }
 }
 ```
@@ -235,7 +313,8 @@ Content-Type: application/json
   "shippingAddressId": 1,
   "billingAddressId": 1,
   "paymentMethod": "stripe",
-  "notes": "Please handle with care"
+  "notes": "Handle with care",
+  "couponCode": "SAVE10"
 }
 ```
 
@@ -246,7 +325,72 @@ Content-Type: application/json
   "productId": 1,
   "rating": 5,
   "title": "Excellent Product!",
-  "comment": "This MacBook Pro exceeded my expectations. Great performance and build quality."
+  "comment": "This product exceeded my expectations."
+}
+```
+
+### Update Order Status
+
+```json
+{
+  "status": "confirmed"
+}
+```
+
+### Cancel Order
+
+```json
+{
+  "reason": "Changed mind"
+}
+```
+
+### Initiate Payment
+
+```json
+{
+  "orderId": 1,
+  "paymentMethod": "stripe",
+  "amount": 999.99
+}
+```
+
+### Update Shipping Status
+
+```json
+{
+  "status": "in_transit",
+  "trackingNumber": "TRK123456789",
+  "location": "New York Distribution Center"
+}
+```
+
+### Create Inventory
+
+```json
+{
+  "productId": 1,
+  "sku": "PHONE-001",
+  "quantity": 100,
+  "reorderLevel": 10
+}
+```
+
+### Update Inventory
+
+```json
+{
+  "quantity": 150,
+  "reorderLevel": 15,
+  "sku": "PHONE-001-UPDATED"
+}
+```
+
+### Restock Product
+
+```json
+{
+  "quantity": 50
 }
 ```
 
@@ -344,4 +488,4 @@ Set these in your Postman environment:
 - Validate input sanitization
 - Test rate limiting functionality
 
-This guide covers all endpoints in your e-commerce backend. Import the Postman collection and follow this guide to comprehensively test your API!
+This comprehensive guide covers all 89+ endpoints in your e-commerce backend system. Import the Postman collection and follow this guide to thoroughly test your API across all user roles and functionality!

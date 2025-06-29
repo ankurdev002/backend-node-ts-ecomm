@@ -14,6 +14,7 @@ import reviewRoutes from "./routes/review.routes";
 import adminRoutes from "./routes/admin.routes";
 import vendorRoutes from "./routes/vendor.routes";
 import deliveryRoutes from "./routes/delivery.routes";
+import inventoryRoutes from "./routes/inventory.routes";
 import { authenticateUser } from "./middleware/auth.middleware";
 import { authorizeRole } from "./middleware/role.middleware";
 import { USER_ROLES } from "./constants/user_roles";
@@ -55,6 +56,9 @@ app.use(
 
 // Delivery routes
 app.use("/api/delivery", deliveryRoutes);
+
+// Inventory routes
+app.use("/api/inventory", inventoryRoutes);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("API IS UP...");

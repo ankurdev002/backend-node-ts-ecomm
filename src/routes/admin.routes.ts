@@ -9,6 +9,7 @@ import {
 import { authenticateUser } from "../middleware/auth.middleware";
 import { authorizeRole } from "../middleware/role.middleware";
 import { USER_ROLES } from "../constants/user_roles";
+import { ENDPOINTS } from "../constants/endpoint";
 
 const router = Router();
 
@@ -19,26 +20,26 @@ router.use(authorizeRole([USER_ROLES.ADMIN]));
 // @route GET /api/admin/dashboard
 // @desc Get admin dashboard statistics
 // @access Private (Admin)
-router.get("/dashboard", getDashboardStats);
+router.get(ENDPOINTS.ADMIN_ROUTE.DASHBOARD, getDashboardStats);
 
 // @route GET /api/admin/users
 // @desc Get all users with filters and pagination
 // @access Private (Admin)
-router.get("/users", getAllUsers);
+router.get(ENDPOINTS.ADMIN_ROUTE.USERS, getAllUsers);
 
 // @route GET /api/admin/orders
 // @desc Get all orders with filters and pagination
 // @access Private (Admin)
-router.get("/orders", getAllOrders);
+router.get(ENDPOINTS.ADMIN_ROUTE.ORDERS, getAllOrders);
 
 // @route PUT /api/admin/users/:userId/status
 // @desc Update user status (activate/deactivate)
 // @access Private (Admin)
-router.put("/users/:userId/status", updateUserStatus);
+router.put(ENDPOINTS.ADMIN_ROUTE.UPDATE_USER_STATUS, updateUserStatus);
 
 // @route GET /api/admin/reports/revenue
 // @desc Get revenue report
 // @access Private (Admin)
-router.get("/reports/revenue", getRevenuereport);
+router.get(ENDPOINTS.ADMIN_ROUTE.REVENUE, getRevenuereport);
 
 export default router;

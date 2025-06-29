@@ -18,8 +18,11 @@ const paginate =
 
       const whereCondition: WhereOptions = { ...baseWhereCondition };
 
+      // Exclude pagination-specific parameters from WHERE clause
+      const excludeParams = ["page", "limit", "offset"];
+
       Object.keys(req.query).forEach((key) => {
-        if (req.query[key] !== undefined) {
+        if (req.query[key] !== undefined && !excludeParams.includes(key)) {
           (whereCondition as Record<string, any>)[key] = req.query[key];
         }
       });

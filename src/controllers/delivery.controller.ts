@@ -130,22 +130,6 @@ export const getAssignedOrders = async (
 
     const { count, rows: orders } = await Order.findAndCountAll({
       where: whereClause,
-      include: [
-        {
-          model: User,
-          as: "customer",
-          attributes: ["id", "firstName", "lastName", "email", "phone"],
-        },
-        {
-          model: Address,
-          as: "shippingAddress",
-          attributes: ["street", "city", "state", "zipCode", "phone"],
-        },
-        {
-          model: Shipping,
-          as: "shipping",
-        },
-      ],
       limit: parseInt(limit as string),
       offset,
       order: [
@@ -154,11 +138,38 @@ export const getAssignedOrders = async (
       ],
     });
 
+    // Fetch related data separately for each order
+    const ordersWithDetails = [];
+    for (const order of orders) {
+      // Get customer info
+      const customer = await User.findByPk(order.userId, {
+        attributes: ["id", "firstName", "lastName", "email", "phone"],
+      });
+
+      // Get shipping address
+      const shippingAddress = await Address.findByPk(order.shippingAddressId, {
+        attributes: ["street", "city", "state", "zipCode", "phone"],
+      });
+
+      // Get shipping info
+      const shipping = await Shipping.findOne({
+        where: { orderId: order.id },
+      });
+
+      // Combine all data
+      ordersWithDetails.push({
+        ...order.toJSON(),
+        customer: customer ? customer.toJSON() : null,
+        shippingAddress: shippingAddress ? shippingAddress.toJSON() : null,
+        shipping: shipping ? shipping.toJSON() : null,
+      });
+    }
+
     res.json({
       success: true,
       message: "Assigned orders retrieved successfully",
       data: {
-        orders,
+        orders: ordersWithDetails,
         pagination: {
           currentPage: parseInt(page as string),
           totalPages: Math.ceil(count / parseInt(limit as string)),
@@ -195,7 +206,6 @@ export const updateDeliveryStatus = async (
 
     const order = await Order.findOne({
       where: { id: parseInt(orderId), deliveryPersonId: userId },
-      include: [{ model: Shipping, as: "shipping" }],
     });
 
     if (!order) {
@@ -205,7 +215,11 @@ export const updateDeliveryStatus = async (
       });
     }
 
-    const shipping = (order as any).shipping;
+    // Get shipping separately to avoid association issues
+    const shipping = await Shipping.findOne({
+      where: { orderId: order.id },
+    });
+
     if (!shipping) {
       return res.status(404).json({
         success: false,
@@ -227,10 +241,16 @@ export const updateDeliveryStatus = async (
 
     await Promise.all([shipping.save(), order.save()]);
 
+    // Return order and shipping data manually combined
+    const orderWithShipping = {
+      ...order.toJSON(),
+      shipping: shipping.toJSON(),
+    };
+
     res.json({
       success: true,
       message: "Delivery status updated successfully",
-      data: { order, shipping },
+      data: { order: orderWithShipping, shipping: shipping.toJSON() },
     });
   } catch (error: any) {
     res.status(400).json({
@@ -273,26 +293,38 @@ export const getDeliveryRoute = async (
           [Op.in]: ["confirmed", "processing", "shipped", "out_for_delivery"],
         },
       },
-      include: [
-        {
-          model: User,
-          as: "customer",
-          attributes: ["firstName", "lastName", "phone"],
-        },
-        {
-          model: Address,
-          as: "shippingAddress",
-        },
-        {
-          model: Shipping,
-          as: "shipping",
-        },
-      ],
       order: [["deliveryDate", "ASC"]],
     });
 
+    // Fetch related data separately for each order
+    const ordersWithDetails = [];
+    for (const order of orders) {
+      // Get customer info
+      const customer = await User.findByPk(order.userId, {
+        attributes: ["firstName", "lastName", "phone"],
+      });
+
+      // Get shipping address
+      const shippingAddress = await Address.findByPk(order.shippingAddressId);
+
+      // Get shipping info
+      const shipping = await Shipping.findOne({
+        where: { orderId: order.id },
+      });
+
+      // Combine all data
+      const orderWithDetails = {
+        ...order.toJSON(),
+        customer: customer ? customer.toJSON() : null,
+        shippingAddress: shippingAddress ? shippingAddress.toJSON() : null,
+        shipping: shipping ? shipping.toJSON() : null,
+      };
+
+      ordersWithDetails.push(orderWithDetails);
+    }
+
     // Group orders by area/zipcode for optimal routing
-    const routeOptimized = orders.reduce((acc: any, order: any) => {
+    const routeOptimized = ordersWithDetails.reduce((acc: any, order: any) => {
       const zipCode = order.shippingAddress?.zipCode || "unknown";
       if (!acc[zipCode]) {
         acc[zipCode] = [];
@@ -306,9 +338,9 @@ export const getDeliveryRoute = async (
       message: "Delivery route retrieved successfully",
       data: {
         date: targetDate.toISOString().split("T")[0],
-        totalDeliveries: orders.length,
+        totalDeliveries: ordersWithDetails.length,
         route: routeOptimized,
-        orders,
+        orders: ordersWithDetails,
       },
     });
   } catch (error: any) {

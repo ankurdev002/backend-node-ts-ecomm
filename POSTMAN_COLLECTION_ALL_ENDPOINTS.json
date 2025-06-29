@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "E-Commerce Backend - ALL 62 ENDPOINTS",
-    "description": "Complete collection with ALL 62 API endpoints for comprehensive testing",
+    "name": "E-Commerce Backend - Complete API Collection",
+    "description": "Complete collection with all API endpoints based on actual codebase implementation with proper payloads and authentication",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -10,7 +10,7 @@
   ],
   "item": [
     {
-      "name": "Authentication",
+      "name": "Authentication & User Management",
       "item": [
         {
           "name": "1. Register User",
@@ -19,7 +19,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"userType\": \"normal\",\n  \"phone\": \"+1234567890\"\n}"
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"userType\": \"normal\"\n}"
             },
             "url": "{{base_url}}/users/register"
           }
@@ -32,7 +32,10 @@
               "script": {
                 "exec": [
                   "if (pm.response.code === 200) {",
-                  "    pm.collectionVariables.set('auth_token', pm.response.json().data.token);",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.token) {",
+                  "        pm.collectionVariables.set('auth_token', response.data.token);",
+                  "    }",
                   "}"
                 ]
               }
@@ -71,12 +74,7 @@
             },
             "url": "{{base_url}}/users/resend-otp"
           }
-        }
-      ]
-    },
-    {
-      "name": "User Management",
-      "item": [
+        },
         {
           "name": "5. Get User Profile",
           "request": {
@@ -101,18 +99,21 @@
             },
             "url": "{{base_url}}/users/profile"
           }
+        },
+        {
+          "name": "7. Get All Products List (Public)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/users/all-products-list?page=1&limit=10"
+          }
         }
       ]
     },
     {
-      "name": "Categories",
+      "name": "Admin - Category Management",
       "item": [
         {
-          "name": "7. Get All Categories",
-          "request": { "method": "GET", "url": "{{base_url}}/categories" }
-        },
-        {
-          "name": "8. Create Category",
+          "name": "8. Create Super Category",
           "request": {
             "method": "POST",
             "header": [
@@ -121,17 +122,33 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Electronics\",\n  \"description\": \"Electronic devices and gadgets\",\n  \"parentId\": null\n}"
+              "raw": "{\n  \"name\": \"Electronics\",\n  \"isActive\": true\n}"
             },
-            "url": "{{base_url}}/categories"
+            "url": "{{base_url}}/admin/categories/super-category"
           }
         },
         {
-          "name": "9. Get Category by ID",
-          "request": { "method": "GET", "url": "{{base_url}}/categories/1" }
+          "name": "9. Get All Super Categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/admin/categories/super-categories?page=1&limit=10"
+          }
         },
         {
-          "name": "10. Update Category",
+          "name": "10. Get Super Category by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/admin/categories/super-category/1"
+          }
+        },
+        {
+          "name": "11. Update Super Category",
           "request": {
             "method": "PUT",
             "header": [
@@ -140,35 +157,23 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Electronics Updated\",\n  \"description\": \"Updated description\"\n}"
+              "raw": "{\n  \"name\": \"Electronics Updated\",\n  \"isActive\": true\n}"
             },
-            "url": "{{base_url}}/categories/1"
+            "url": "{{base_url}}/admin/categories/super-category/1"
           }
         },
         {
-          "name": "11. Delete Category",
+          "name": "12. Delete Super Category",
           "request": {
             "method": "DELETE",
             "header": [
               { "key": "Authorization", "value": "Bearer {{auth_token}}" }
             ],
-            "url": "{{base_url}}/categories/1"
-          }
-        }
-      ]
-    },
-    {
-      "name": "Products",
-      "item": [
-        {
-          "name": "12. Get All Products",
-          "request": {
-            "method": "GET",
-            "url": "{{base_url}}/products?page=1&limit=10&category=1&search=laptop&minPrice=100&maxPrice=5000"
+            "url": "{{base_url}}/admin/categories/super-category/1"
           }
         },
         {
-          "name": "13. Create Product",
+          "name": "13. Create Category",
           "request": {
             "method": "POST",
             "header": [
@@ -177,17 +182,33 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"MacBook Pro 16\",\n  \"description\": \"Apple MacBook Pro 16-inch with M2 chip\",\n  \"price\": 2499.99,\n  \"categoryId\": 1,\n  \"images\": [\"image1.jpg\", \"image2.jpg\"],\n  \"specifications\": {\n    \"processor\": \"M2 Pro\",\n    \"memory\": \"16GB\",\n    \"storage\": \"512GB SSD\"\n  },\n  \"variants\": [\n    {\n      \"name\": \"Space Gray\",\n      \"price\": 2499.99,\n      \"sku\": \"MBP16-SG-512\"\n    }\n  ]\n}"
+              "raw": "{\n  \"name\": \"Smartphones\",\n  \"superCategoryId\": 1,\n  \"isActive\": true\n}"
             },
-            "url": "{{base_url}}/products"
+            "url": "{{base_url}}/admin/categories/category"
           }
         },
         {
-          "name": "14. Get Product by ID",
-          "request": { "method": "GET", "url": "{{base_url}}/products/1" }
+          "name": "14. Get All Categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/admin/categories/categories?page=1&limit=10"
+          }
         },
         {
-          "name": "15. Update Product",
+          "name": "15. Get Category by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/admin/categories/category/1"
+          }
+        },
+        {
+          "name": "16. Update Category",
           "request": {
             "method": "PUT",
             "header": [
@@ -196,13 +217,208 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"MacBook Pro 16 - Updated\",\n  \"price\": 2399.99\n}"
+              "raw": "{\n  \"name\": \"Smartphones Updated\",\n  \"superCategoryId\": 1,\n  \"isActive\": true\n}"
+            },
+            "url": "{{base_url}}/admin/categories/category/1"
+          }
+        },
+        {
+          "name": "17. Delete Category",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/admin/categories/category/1"
+          }
+        },
+        {
+          "name": "18. Create Sub Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Android Phones\",\n  \"categoryId\": 1,\n  \"superCategoryId\": 1,\n  \"isActive\": true\n}"
+            },
+            "url": "{{base_url}}/admin/categories/sub-category"
+          }
+        },
+        {
+          "name": "19. Get All Sub Categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/admin/categories/sub-categories?page=1&limit=10"
+          }
+        },
+        {
+          "name": "20. Get Sub Category by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/admin/categories/sub-category/1"
+          }
+        },
+        {
+          "name": "21. Update Sub Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Android Phones Updated\",\n  \"categoryId\": 1,\n  \"superCategoryId\": 1,\n  \"isActive\": true\n}"
+            },
+            "url": "{{base_url}}/admin/categories/sub-category/1"
+          }
+        },
+        {
+          "name": "22. Delete Sub Category",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/admin/categories/sub-category/1"
+          }
+        },
+        {
+          "name": "23. Create Product Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Flagship Phones\",\n  \"superCategoryId\": 1,\n  \"categoryId\": 1,\n  \"subCategoryId\": 1,\n  \"isActive\": true\n}"
+            },
+            "url": "{{base_url}}/admin/categories/product-category"
+          }
+        },
+        {
+          "name": "24. Get All Product Categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/admin/categories/product-categories?page=1&limit=10"
+          }
+        },
+        {
+          "name": "25. Get Product Category by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/admin/categories/product-category/1"
+          }
+        },
+        {
+          "name": "26. Update Product Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Flagship Phones Updated\",\n  \"superCategoryId\": 1,\n  \"categoryId\": 1,\n  \"subCategoryId\": 1,\n  \"isActive\": true\n}"
+            },
+            "url": "{{base_url}}/admin/categories/product-category/1"
+          }
+        },
+        {
+          "name": "27. Delete Product Category",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/admin/categories/product-category/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Product Management (Admin/Vendor)",
+      "item": [
+        {
+          "name": "28. Create Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"iPhone 15 Pro\",\n  \"productCategoryId\": 1,\n  \"superCategoryId\": 1,\n  \"categoryId\": 1,\n  \"subCategoryId\": 1,\n  \"isActive\": true,\n  \"productType\": \"smartphone\",\n  \"userId\": 1,\n  \"pricing\": [\n    {\n      \"label\": \"Base Price\",\n      \"price\": 999,\n      \"discount\": 0,\n      \"country\": \"USA\",\n      \"currency\": \"USD\",\n      \"currencySymbol\": \"$\",\n      \"actualPrice\": 999,\n      \"discountAmount\": 0,\n      \"finalPrice\": 999\n    }\n  ],\n  \"images\": {\n    \"black\": [\"https://example.com/iphone15-black-1.jpg\", \"https://example.com/iphone15-black-2.jpg\"],\n    \"white\": [\"https://example.com/iphone15-white-1.jpg\"]\n  },\n  \"attributes\": {\n    \"brand\": \"Apple\",\n    \"capacity\": \"128GB\",\n    \"power\": \"Battery 3274 mAh\"\n  }\n}"
+            },
+            "url": "{{base_url}}/products/create"
+          }
+        },
+        {
+          "name": "29. Get All Products (Admin List)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/products/all-list?page=1&limit=10"
+          }
+        },
+        {
+          "name": "30. Get Products by Role and ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/products/all?page=1&limit=10"
+          }
+        },
+        {
+          "name": "31. Get Product by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/products/1"
+          }
+        },
+        {
+          "name": "32. Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"iPhone 15 Pro Updated\",\n  \"userId\": 1,\n  \"pricing\": [\n    {\n      \"label\": \"Updated Price\",\n      \"price\": 899,\n      \"discount\": 100,\n      \"country\": \"USA\",\n      \"currency\": \"USD\",\n      \"currencySymbol\": \"$\",\n      \"actualPrice\": 999,\n      \"discountAmount\": 100,\n      \"finalPrice\": 899\n    }\n  ]\n}"
             },
             "url": "{{base_url}}/products/1"
           }
         },
         {
-          "name": "16. Delete Product",
+          "name": "33. Delete Product",
           "request": {
             "method": "DELETE",
             "header": [
@@ -217,7 +433,22 @@
       "name": "Shopping Cart",
       "item": [
         {
-          "name": "17. Get Cart Items",
+          "name": "34. Add Item to Cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 1,\n  \"quantity\": 2,\n  \"selectedVariant\": {\n    \"color\": \"black\",\n    \"storage\": \"128GB\"\n  }\n}"
+            },
+            "url": "{{base_url}}/cart/add"
+          }
+        },
+        {
+          "name": "35. Get User Cart",
           "request": {
             "method": "GET",
             "header": [
@@ -227,34 +458,22 @@
           }
         },
         {
-          "name": "18. Add Item to Cart",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"productId\": 1,\n  \"quantity\": 2,\n  \"selectedVariant\": {\n    \"color\": \"Space Gray\",\n    \"storage\": \"512GB\"\n  }\n}"
-            },
-            "url": "{{base_url}}/cart/add"
-          }
-        },
-        {
-          "name": "19. Update Cart Item",
+          "name": "36. Update Cart Item Quantity",
           "request": {
             "method": "PUT",
             "header": [
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{auth_token}}" }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"quantity\": 3\n}" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 3\n}"
+            },
             "url": "{{base_url}}/cart/1"
           }
         },
         {
-          "name": "20. Remove Item from Cart",
+          "name": "37. Remove Item from Cart",
           "request": {
             "method": "DELETE",
             "header": [
@@ -264,42 +483,32 @@
           }
         },
         {
-          "name": "21. Clear Cart",
+          "name": "38. Clear User Cart",
           "request": {
             "method": "DELETE",
             "header": [
               { "key": "Authorization", "value": "Bearer {{auth_token}}" }
             ],
-            "url": "{{base_url}}/cart/clear"
+            "url": "{{base_url}}/cart"
           }
         },
         {
-          "name": "22. Validate Cart",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
-            ],
-            "url": "{{base_url}}/cart/validate"
-          }
-        }
-      ]
-    },
-    {
-      "name": "Addresses",
-      "item": [
-        {
-          "name": "23. Get User Addresses",
+          "name": "39. Validate Cart",
           "request": {
             "method": "GET",
             "header": [
               { "key": "Authorization", "value": "Bearer {{auth_token}}" }
             ],
-            "url": "{{base_url}}/addresses?type=shipping"
+            "url": "{{base_url}}/cart/validate?checkStock=true"
           }
-        },
+        }
+      ]
+    },
+    {
+      "name": "Address Management",
+      "item": [
         {
-          "name": "24. Create Address",
+          "name": "40. Create Address",
           "request": {
             "method": "POST",
             "header": [
@@ -314,7 +523,27 @@
           }
         },
         {
-          "name": "25. Get Address by ID",
+          "name": "41. Get User Addresses",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/addresses?type=shipping"
+          }
+        },
+        {
+          "name": "42. Get Default Address",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/addresses/default/shipping"
+          }
+        },
+        {
+          "name": "43. Get Address by ID",
           "request": {
             "method": "GET",
             "header": [
@@ -324,7 +553,7 @@
           }
         },
         {
-          "name": "26. Update Address",
+          "name": "44. Update Address",
           "request": {
             "method": "PUT",
             "header": [
@@ -339,17 +568,7 @@
           }
         },
         {
-          "name": "27. Delete Address",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
-            ],
-            "url": "{{base_url}}/addresses/1"
-          }
-        },
-        {
-          "name": "28. Set Default Address",
+          "name": "45. Set Address as Default",
           "request": {
             "method": "PUT",
             "header": [
@@ -359,32 +578,22 @@
           }
         },
         {
-          "name": "29. Get Default Address",
+          "name": "46. Delete Address",
           "request": {
-            "method": "GET",
+            "method": "DELETE",
             "header": [
               { "key": "Authorization", "value": "Bearer {{auth_token}}" }
             ],
-            "url": "{{base_url}}/addresses/default/shipping"
+            "url": "{{base_url}}/addresses/1"
           }
         }
       ]
     },
     {
-      "name": "Orders",
+      "name": "Order Management",
       "item": [
         {
-          "name": "30. Get User Orders",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
-            ],
-            "url": "{{base_url}}/orders?page=1&limit=10"
-          }
-        },
-        {
-          "name": "31. Create Order from Cart",
+          "name": "47. Create Order",
           "request": {
             "method": "POST",
             "header": [
@@ -399,7 +608,27 @@
           }
         },
         {
-          "name": "32. Get Order by ID",
+          "name": "48. Get User Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/orders?page=1&limit=10"
+          }
+        },
+        {
+          "name": "49. Get Orders by Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/orders/status/pending"
+          }
+        },
+        {
+          "name": "50. Get Order by ID",
           "request": {
             "method": "GET",
             "header": [
@@ -409,7 +638,22 @@
           }
         },
         {
-          "name": "33. Cancel Order",
+          "name": "51. Update Order",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"confirmed\",\n  \"notes\": \"Order confirmed and ready for processing\"\n}"
+            },
+            "url": "{{base_url}}/orders/1"
+          }
+        },
+        {
+          "name": "52. Cancel Order",
           "request": {
             "method": "PUT",
             "header": [
@@ -417,29 +661,14 @@
             ],
             "url": "{{base_url}}/orders/1/cancel"
           }
-        },
-        {
-          "name": "34. Update Order Status",
-          "request": {
-            "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"status\": \"confirmed\"\n}"
-            },
-            "url": "{{base_url}}/orders/1/status"
-          }
         }
       ]
     },
     {
-      "name": "Payments",
+      "name": "Payment Processing",
       "item": [
         {
-          "name": "35. Initiate Payment",
+          "name": "53. Initiate Payment",
           "request": {
             "method": "POST",
             "header": [
@@ -448,49 +677,49 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"orderId\": 1,\n  \"paymentMethod\": \"stripe\",\n  \"amount\": 2499.99\n}"
+              "raw": "{\n  \"orderId\": 1,\n  \"paymentMethod\": \"stripe\",\n  \"amount\": 999.99\n}"
             },
             "url": "{{base_url}}/payments/initiate"
           }
         },
         {
-          "name": "36. Payment Callback",
+          "name": "54. Payment Callback",
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"status\": \"completed\",\n  \"transactionId\": \"txn_123456\"\n}"
+              "raw": "{\n  \"status\": \"completed\",\n  \"transactionId\": \"txn_123456789\",\n  \"amount\": 999.99\n}"
             },
             "url": "{{base_url}}/payments/1/callback"
           }
         },
         {
-          "name": "37. Stripe Callback",
+          "name": "55. Stripe Callback",
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"payment_intent\": \"pi_123456\",\n  \"status\": \"succeeded\"\n}"
+              "raw": "{\n  \"payment_intent\": \"pi_1234567890\",\n  \"status\": \"succeeded\",\n  \"amount_received\": 99999\n}"
             },
             "url": "{{base_url}}/payments/1/stripe/callback"
           }
         },
         {
-          "name": "38. PayPal Callback",
+          "name": "56. PayPal Callback",
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"payment_id\": \"PAY-123456\",\n  \"state\": \"approved\"\n}"
+              "raw": "{\n  \"payment_id\": \"PAY-1234567890\",\n  \"state\": \"approved\",\n  \"payer_id\": \"PAYER123\"\n}"
             },
             "url": "{{base_url}}/payments/1/paypal/callback"
           }
         },
         {
-          "name": "39. Refund Payment",
+          "name": "57. Refund Payment (Admin)",
           "request": {
             "method": "POST",
             "header": [
@@ -499,13 +728,13 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"reason\": \"Customer request\",\n  \"amount\": 2499.99\n}"
+              "raw": "{\n  \"reason\": \"Customer request\",\n  \"amount\": 999.99\n}"
             },
             "url": "{{base_url}}/payments/1/refund"
           }
         },
         {
-          "name": "40. Get Order Payments",
+          "name": "58. Get Order Payments",
           "request": {
             "method": "GET",
             "header": [
@@ -515,7 +744,7 @@
           }
         },
         {
-          "name": "41. Get Payment Details",
+          "name": "59. Get Payment Details",
           "request": {
             "method": "GET",
             "header": [
@@ -527,10 +756,25 @@
       ]
     },
     {
-      "name": "Shipping",
+      "name": "Shipping & Delivery",
       "item": [
         {
-          "name": "42. Get Order Shipping",
+          "name": "60. Update Shipping Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in_transit\",\n  \"trackingNumber\": \"TRK123456789\",\n  \"location\": \"New York Distribution Center\",\n  \"estimatedDelivery\": \"2024-01-15\"\n}"
+            },
+            "url": "{{base_url}}/shipping/1/status"
+          }
+        },
+        {
+          "name": "61. Get Shipping Info",
           "request": {
             "method": "GET",
             "header": [
@@ -540,34 +784,29 @@
           }
         },
         {
-          "name": "43. Update Shipping Status",
-          "request": {
-            "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"status\": \"in_transit\",\n  \"trackingNumber\": \"TRK123456789\",\n  \"location\": \"New York Distribution Center\"\n}"
-            },
-            "url": "{{base_url}}/shipping/1/status"
-          }
-        },
-        {
-          "name": "44. Track Shipment",
+          "name": "62. Track Shipment (Public)",
           "request": {
             "method": "GET",
             "url": "{{base_url}}/shipping/track/TRK123456789"
+          }
+        },
+        {
+          "name": "63. Get Delivery Assignments",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/shipping/delivery/assignments?page=1&limit=10"
           }
         }
       ]
     },
     {
-      "name": "Reviews",
+      "name": "Reviews & Ratings",
       "item": [
         {
-          "name": "45. Create Product Review",
+          "name": "64. Create Product Review",
           "request": {
             "method": "POST",
             "header": [
@@ -576,30 +815,30 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"productId\": 1,\n  \"rating\": 5,\n  \"title\": \"Excellent Product!\",\n  \"comment\": \"This MacBook Pro exceeded my expectations. Great performance and build quality.\"\n}"
+              "raw": "{\n  \"productId\": 1,\n  \"rating\": 5,\n  \"title\": \"Excellent Product!\",\n  \"comment\": \"This iPhone 15 Pro exceeded my expectations. Great performance and build quality.\"\n}"
             },
             "url": "{{base_url}}/reviews"
           }
         },
         {
-          "name": "46. Get Product Reviews",
+          "name": "65. Get Product Reviews (Public)",
           "request": {
             "method": "GET",
             "url": "{{base_url}}/reviews/product/1?page=1&limit=10&rating=5&sortBy=createdAt&sortOrder=DESC"
           }
         },
         {
-          "name": "47. Get User Reviews",
+          "name": "66. Get User Reviews",
           "request": {
             "method": "GET",
             "header": [
               { "key": "Authorization", "value": "Bearer {{auth_token}}" }
             ],
-            "url": "{{base_url}}/reviews/user"
+            "url": "{{base_url}}/reviews/user?page=1&limit=10"
           }
         },
         {
-          "name": "48. Update Review",
+          "name": "67. Update Review",
           "request": {
             "method": "PUT",
             "header": [
@@ -608,13 +847,13 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"rating\": 4,\n  \"title\": \"Good Product - Updated\",\n  \"comment\": \"Updated review: Still a good product but found some minor issues.\"\n}"
+              "raw": "{\n  \"rating\": 4,\n  \"title\": \"Good Product - Updated\",\n  \"comment\": \"Updated review: Still a good product but found some minor issues after extended use.\"\n}"
             },
             "url": "{{base_url}}/reviews/1"
           }
         },
         {
-          "name": "49. Delete Review",
+          "name": "68. Delete Review",
           "request": {
             "method": "DELETE",
             "header": [
@@ -629,7 +868,7 @@
       "name": "Admin Panel",
       "item": [
         {
-          "name": "50. Admin Dashboard",
+          "name": "69. Admin Dashboard",
           "request": {
             "method": "GET",
             "header": [
@@ -639,7 +878,7 @@
           }
         },
         {
-          "name": "51. Get All Users",
+          "name": "70. Get All Users",
           "request": {
             "method": "GET",
             "header": [
@@ -649,22 +888,7 @@
           }
         },
         {
-          "name": "52. Update User Status",
-          "request": {
-            "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"isActive\": false,\n  \"reason\": \"Policy violation\"\n}"
-            },
-            "url": "{{base_url}}/admin/users/1/status"
-          }
-        },
-        {
-          "name": "53. Get All Orders",
+          "name": "71. Get All Orders",
           "request": {
             "method": "GET",
             "header": [
@@ -674,13 +898,28 @@
           }
         },
         {
-          "name": "54. Get All Products",
+          "name": "72. Update User Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false,\n  \"reason\": \"Policy violation - inappropriate behavior\"\n}"
+            },
+            "url": "{{base_url}}/admin/users/1/status"
+          }
+        },
+        {
+          "name": "73. Get Revenue Report",
           "request": {
             "method": "GET",
             "header": [
               { "key": "Authorization", "value": "Bearer {{auth_token}}" }
             ],
-            "url": "{{base_url}}/admin/products?page=1&limit=10&status=active"
+            "url": "{{base_url}}/admin/reports/revenue?startDate=2024-01-01&endDate=2024-12-31"
           }
         }
       ]
@@ -689,7 +928,7 @@
       "name": "Vendor Panel",
       "item": [
         {
-          "name": "55. Vendor Dashboard",
+          "name": "74. Vendor Dashboard",
           "request": {
             "method": "GET",
             "header": [
@@ -699,17 +938,17 @@
           }
         },
         {
-          "name": "56. Get Vendor Products",
+          "name": "75. Get Vendor Products",
           "request": {
             "method": "GET",
             "header": [
               { "key": "Authorization", "value": "Bearer {{auth_token}}" }
             ],
-            "url": "{{base_url}}/vendor/products?page=1&limit=10&category=1&status=active&search=laptop"
+            "url": "{{base_url}}/vendor/products?page=1&limit=10&status=active&search=phone"
           }
         },
         {
-          "name": "57. Get Vendor Orders",
+          "name": "76. Get Vendor Orders",
           "request": {
             "method": "GET",
             "header": [
@@ -719,7 +958,7 @@
           }
         },
         {
-          "name": "58. Update Order Status (Vendor)",
+          "name": "77. Update Order Status (Vendor)",
           "request": {
             "method": "PUT",
             "header": [
@@ -728,19 +967,19 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"status\": \"confirmed\"\n}"
+              "raw": "{\n  \"status\": \"confirmed\",\n  \"notes\": \"Order confirmed by vendor and ready for processing\"\n}"
             },
             "url": "{{base_url}}/vendor/orders/1/status"
           }
         },
         {
-          "name": "59. Inventory Report",
+          "name": "78. Get Inventory Report",
           "request": {
             "method": "GET",
             "header": [
               { "key": "Authorization", "value": "Bearer {{auth_token}}" }
             ],
-            "url": "{{base_url}}/vendor/inventory"
+            "url": "{{base_url}}/vendor/inventory/report?lowStock=true"
           }
         }
       ]
@@ -749,17 +988,27 @@
       "name": "Delivery Panel",
       "item": [
         {
-          "name": "60. Get Assigned Deliveries",
+          "name": "79. Delivery Dashboard",
           "request": {
             "method": "GET",
             "header": [
               { "key": "Authorization", "value": "Bearer {{auth_token}}" }
             ],
-            "url": "{{base_url}}/delivery/assignments?page=1&limit=10&status=assigned"
+            "url": "{{base_url}}/delivery/dashboard"
           }
         },
         {
-          "name": "61. Update Delivery Status",
+          "name": "80. Get Assigned Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/delivery/orders?page=1&limit=10&status=assigned&date=2024-01-15"
+          }
+        },
+        {
+          "name": "81. Update Delivery Status",
           "request": {
             "method": "PUT",
             "header": [
@@ -768,13 +1017,53 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"status\": \"picked_up\",\n  \"location\": \"Picked up from warehouse\",\n  \"notes\": \"Package secured for delivery\"\n}"
+              "raw": "{\n  \"status\": \"picked_up\",\n  \"location\": \"Picked up from warehouse\",\n  \"notes\": \"Package secured for delivery\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}"
             },
-            "url": "{{base_url}}/delivery/1/status"
+            "url": "{{base_url}}/delivery/orders/1/status"
           }
         },
         {
-          "name": "62. Complete Delivery",
+          "name": "82. Get Delivery Route",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/delivery/route?date=2024-01-15&optimize=true"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Inventory Management (Admin/Vendor)",
+      "item": [
+        {
+          "name": "83. Create Inventory",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 1,\n  \"sku\": \"PHONE-001\",\n  \"quantity\": 100,\n  \"reorderLevel\": 10\n}"
+            },
+            "url": "{{base_url}}/inventory/create"
+          }
+        },
+        {
+          "name": "84. Get Product Inventory",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/inventory/product/1"
+          }
+        },
+        {
+          "name": "85. Update Product Inventory",
           "request": {
             "method": "PUT",
             "header": [
@@ -783,9 +1072,54 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"deliveryProof\": \"https://example.com/proof.jpg\",\n  \"recipientName\": \"John Doe\",\n  \"notes\": \"Delivered successfully to customer\"\n}"
+              "raw": "{\n  \"quantity\": 150,\n  \"reorderLevel\": 15,\n  \"sku\": \"PHONE-001-UPDATED\"\n}"
             },
-            "url": "{{base_url}}/delivery/1/complete"
+            "url": "{{base_url}}/inventory/product/1"
+          }
+        },
+        {
+          "name": "86. Restock Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 50\n}"
+            },
+            "url": "{{base_url}}/inventory/restock/1"
+          }
+        },
+        {
+          "name": "87. Get Low Stock Products",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/inventory/low-stock"
+          }
+        },
+        {
+          "name": "88. Get Out of Stock Products",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/inventory/out-of-stock"
+          }
+        },
+        {
+          "name": "89. Get Inventory Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/inventory/report"
           }
         }
       ]

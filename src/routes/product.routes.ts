@@ -14,15 +14,32 @@ import {
   createProductSchema,
   updateProductSchema,
 } from "../schema/product.schema";
+import { ENDPOINTS } from "../constants/endpoint";
 
 const router = express.Router();
 
 // Product Routes
-router.post("/create", validate(createProductSchema), createProduct); // Create a new product
-router.get("/all-list", paginate(Product), getAllProducts); // Get all products for admin only
-router.get("/all", paginate(Product), getAllProductsByRolesAndId); // Get all products based on roles and id
-router.get("/:id", getProductById); // Get a product by ID
-router.put("/:id", validate(updateProductSchema), updateProduct); // Update a product by ID
-router.delete("/:id", deleteProduct); // Delete a product by ID
+router.post(
+  ENDPOINTS.ADMIN_ROUTE.CREATE_PRODUCT,
+  validate(createProductSchema),
+  createProduct
+); // Create a new product
+router.get(
+  ENDPOINTS.ADMIN_ROUTE.ALL_PRODUCTS,
+  paginate(Product),
+  getAllProducts
+); // Get all products for admin only
+router.get(
+  ENDPOINTS.ADMIN_ROUTE.PRODUCT_BY_ID_AND_ROLES,
+  paginate(Product),
+  getAllProductsByRolesAndId
+); // Get all products based on roles and id
+router.get(ENDPOINTS.ADMIN_ROUTE.PRODUCT_BY_ID, getProductById); // Get a product by ID
+router.put(
+  ENDPOINTS.ADMIN_ROUTE.UPDATE_PRODUCT,
+  validate(updateProductSchema),
+  updateProduct
+); // Update a product by ID
+router.delete(ENDPOINTS.ADMIN_ROUTE.DELETE_PRODUCT, deleteProduct); // Delete a product by ID
 
 export default router;

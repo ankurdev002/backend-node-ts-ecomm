@@ -8,18 +8,27 @@ export const addToCart = async (
   quantity: number,
   selectedVariant?: Record<string, any>
 ) => {
-  // Check if product exists and is active
+  // Check if product exists and is active - without include
   const product = await Product.findOne({
     where: { id: productId, isActive: true },
-    include: [{ model: Inventory, as: "inventory" }],
   });
 
   if (!product) {
     throw new Error("Product not found or inactive");
   }
 
+  // Get inventory separately to avoid association issues
+  const inventory = await Inventory.findOne({
+    where: { productId },
+  });
+
+  // Check if inventory exists for this product
+  if (!inventory) {
+    throw new Error("Inventory is not associated to product!");
+  }
+
   // Check inventory
-  if (product.inventory && product.inventory.availableQuantity < quantity) {
+  if (inventory.availableQuantity < quantity) {
     throw new Error("Insufficient stock");
   }
 
@@ -47,10 +56,7 @@ export const addToCart = async (
     const newQuantity = existingCartItem.quantity + quantity;
 
     // Check stock again for new quantity
-    if (
-      product.inventory &&
-      product.inventory.availableQuantity < newQuantity
-    ) {
+    if (inventory.availableQuantity < newQuantity) {
       throw new Error("Insufficient stock for requested quantity");
     }
 
@@ -88,62 +94,82 @@ export const updateCartItem = async (
   cartItemId: number,
   quantity: number
 ) => {
+  // Get cart item without include to avoid association issues
   const cartItem = await Cart.findOne({
     where: { id: cartItemId, userId },
-    include: [
-      {
-        model: Product,
-        as: "product",
-        include: [{ model: Inventory, as: "inventory" }],
-      },
-    ],
   });
 
   if (!cartItem) {
     throw new Error("Cart item not found");
   }
 
+  // Get product and inventory separately
+  const product = await Product.findByPk(cartItem.productId);
+  const inventory = await Inventory.findOne({
+    where: { productId: cartItem.productId },
+  });
+
   // Check inventory
-  if (
-    cartItem.product.inventory &&
-    cartItem.product.inventory.availableQuantity < quantity
-  ) {
+  if (inventory && inventory.availableQuantity < quantity) {
     throw new Error("Insufficient stock");
   }
 
   cartItem.quantity = quantity;
   await cartItem.save();
-  return cartItem;
+
+  // Return cart item with product data manually attached
+  const cartItemWithProduct = {
+    ...cartItem.toJSON(),
+    product: product
+      ? {
+          ...product.toJSON(),
+          inventory: inventory ? inventory.toJSON() : null,
+        }
+      : null,
+  };
+
+  return cartItemWithProduct;
 };
 
 export const getCartItems = async (userId: number) => {
+  // Get cart items without include to avoid association issues
   const cartItems = await Cart.findAll({
     where: { userId },
-    include: [
-      {
-        model: Product,
-        as: "product",
-        include: [{ model: Inventory, as: "inventory" }],
-      },
-    ],
     order: [["createdAt", "DESC"]],
   });
 
-  // Calculate cart totals
+  // Get products and inventory separately for each cart item
+  const cartItemsWithProducts = [];
   let totalItems = 0;
   let totalAmount = 0;
 
-  cartItems.forEach((item) => {
-    totalItems += item.quantity;
-    totalAmount += item.quantity * item.price;
-  });
+  for (const cartItem of cartItems) {
+    const product = await Product.findByPk(cartItem.productId);
+    const inventory = await Inventory.findOne({
+      where: { productId: cartItem.productId },
+    });
+
+    const cartItemWithProduct = {
+      ...cartItem.toJSON(),
+      product: product
+        ? {
+            ...product.toJSON(),
+            inventory: inventory ? inventory.toJSON() : null,
+          }
+        : null,
+    };
+
+    cartItemsWithProducts.push(cartItemWithProduct);
+    totalItems += cartItem.quantity;
+    totalAmount += cartItem.quantity * cartItem.price;
+  }
 
   return {
-    items: cartItems,
+    items: cartItemsWithProducts,
     summary: {
       totalItems,
       totalAmount: Math.round(totalAmount * 100) / 100,
-      itemCount: cartItems.length,
+      itemCount: cartItemsWithProducts.length,
     },
   };
 };
@@ -154,35 +180,32 @@ export const clearCart = async (userId: number) => {
 };
 
 export const validateCartStock = async (userId: number) => {
+  // Get cart items without include to avoid association issues
   const cartItems = await Cart.findAll({
     where: { userId },
-    include: [
-      {
-        model: Product,
-        as: "product",
-        include: [{ model: Inventory, as: "inventory" }],
-      },
-    ],
   });
 
   const stockIssues = [];
 
   for (const item of cartItems) {
-    if (!item.product.isActive) {
+    // Get product and inventory separately
+    const product = await Product.findByPk(item.productId);
+    const inventory = await Inventory.findOne({
+      where: { productId: item.productId },
+    });
+
+    if (!product || !product.isActive) {
       stockIssues.push({
         cartItemId: item.id,
         productId: item.productId,
         issue: "Product is no longer available",
       });
-    } else if (
-      item.product.inventory &&
-      item.product.inventory.availableQuantity < item.quantity
-    ) {
+    } else if (inventory && inventory.availableQuantity < item.quantity) {
       stockIssues.push({
         cartItemId: item.id,
         productId: item.productId,
-        issue: `Only ${item.product.inventory.availableQuantity} items available`,
-        availableQuantity: item.product.inventory.availableQuantity,
+        issue: `Only ${inventory.availableQuantity} items available`,
+        availableQuantity: inventory.availableQuantity,
       });
     }
   }

@@ -43,11 +43,11 @@ router.post(
 );
 
 // Profile routes
-router.get("/profile", authenticateUser, getProfile);
-router.put("/profile", authenticateUser, updateProfile);
+router.get(ENDPOINTS.USER_ROUTE.USER_PROFILE, authenticateUser, getProfile);
+router.put(ENDPOINTS.USER_ROUTE.USER_PROFILE, authenticateUser, updateProfile);
 
 router.get(
-  "/all-products-list",
+  ENDPOINTS.USER_ROUTE.ALL_PRODUCT_LIST,
   paginate(Product, [], { isActive: true }),
   getAllProductsList
 );

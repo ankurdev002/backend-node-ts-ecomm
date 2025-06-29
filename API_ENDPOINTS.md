@@ -48,7 +48,7 @@ Content-Type: application/json
 ### 3. Verify OTP
 
 ```http
-POST /api/users/verify-otp
+POST /api/users/verify
 Content-Type: application/json
 
 {
@@ -92,40 +92,47 @@ Content-Type: application/json
 }
 ```
 
----
-
-## 🏷️ **CATEGORIES**
-
-### 7. Get All Categories
+### 7. Get All Products List (Public)
 
 ```http
-GET /api/categories
+GET /api/users/all-products-list?page=1&limit=10
 ```
 
-### 8. Create Category (Admin Only)
+---
+
+## 🏷️ **CATEGORY MANAGEMENT (Admin Only)**
+
+### 8. Create Super Category
 
 ```http
-POST /api/categories
+POST /api/admin/categories/super-category
 Authorization: Bearer <admin_token>
 Content-Type: application/json
 
 {
   "name": "Electronics",
-  "description": "Electronic devices and gadgets",
-  "parentId": null
+  "description": "Electronic devices and gadgets"
 }
 ```
 
-### 9. Get Category by ID
+### 9. Get All Super Categories
 
 ```http
-GET /api/categories/1
+GET /api/admin/categories/super-categories?page=1&limit=10
+Authorization: Bearer <admin_token>
 ```
 
-### 10. Update Category (Admin Only)
+### 10. Get Super Category by ID
 
 ```http
-PUT /api/categories/1
+GET /api/admin/categories/super-category/1
+Authorization: Bearer <admin_token>
+```
+
+### 11. Update Super Category
+
+```http
+PUT /api/admin/categories/super-category/1
 Authorization: Bearer <admin_token>
 Content-Type: application/json
 
@@ -135,58 +142,222 @@ Content-Type: application/json
 }
 ```
 
-### 11. Delete Category (Admin Only)
+### 12. Delete Super Category
 
 ```http
-DELETE /api/categories/1
+DELETE /api/admin/categories/super-category/1
+Authorization: Bearer <admin_token>
+```
+
+### 13. Create Category
+
+```http
+POST /api/admin/categories/category
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+{
+  "name": "Smartphones",
+  "description": "Mobile phones and accessories",
+  "superCategoryId": 1
+}
+```
+
+### 14. Get All Categories
+
+```http
+GET /api/admin/categories/categories?page=1&limit=10
+Authorization: Bearer <admin_token>
+```
+
+### 15. Get Category by ID
+
+```http
+GET /api/admin/categories/category/1
+Authorization: Bearer <admin_token>
+```
+
+### 16. Update Category
+
+```http
+PUT /api/admin/categories/category/1
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+{
+  "name": "Smartphones Updated",
+  "description": "Updated description",
+  "superCategoryId": 1
+}
+```
+
+### 17. Delete Category
+
+```http
+DELETE /api/admin/categories/category/1
+Authorization: Bearer <admin_token>
+```
+
+### 18. Create Sub Category
+
+```http
+POST /api/admin/categories/sub-category
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+{
+  "name": "Android Phones",
+  "description": "Android smartphones",
+  "categoryId": 1
+}
+```
+
+### 19. Get All Sub Categories
+
+```http
+GET /api/admin/categories/sub-categories?page=1&limit=10
+Authorization: Bearer <admin_token>
+```
+
+### 20. Get Sub Category by ID
+
+```http
+GET /api/admin/categories/sub-category/1
+Authorization: Bearer <admin_token>
+```
+
+### 21. Update Sub Category
+
+```http
+PUT /api/admin/categories/sub-category/1
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+{
+  "name": "Android Phones Updated",
+  "description": "Updated description",
+  "categoryId": 1
+}
+```
+
+### 22. Delete Sub Category
+
+```http
+DELETE /api/admin/categories/sub-category/1
+Authorization: Bearer <admin_token>
+```
+
+### 23. Create Product Category
+
+```http
+POST /api/admin/categories/product-category
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+{
+  "name": "Flagship Phones",
+  "description": "High-end smartphones",
+  "subCategoryId": 1
+}
+```
+
+### 24. Get All Product Categories
+
+```http
+GET /api/admin/categories/product-categories?page=1&limit=10
+Authorization: Bearer <admin_token>
+```
+
+### 25. Get Product Category by ID
+
+```http
+GET /api/admin/categories/product-category/1
+Authorization: Bearer <admin_token>
+```
+
+### 26. Update Product Category
+
+```http
+PUT /api/admin/categories/product-category/1
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+{
+  "name": "Flagship Phones Updated",
+  "description": "Updated description",
+  "subCategoryId": 1
+}
+```
+
+### 27. Delete Product Category
+
+```http
+DELETE /api/admin/categories/product-category/1
 Authorization: Bearer <admin_token>
 ```
 
 ---
 
-## 📦 **PRODUCTS**
+## 📦 **PRODUCT MANAGEMENT (Vendor/Admin)**
 
-### 12. Get All Products
-
-```http
-GET /api/products?page=1&limit=10&category=1&search=laptop&minPrice=100&maxPrice=5000
-```
-
-### 13. Create Product (Vendor Only)
+### 28. Create Product
 
 ```http
-POST /api/products
+POST /api/products/create
 Authorization: Bearer <vendor_token>
 Content-Type: application/json
 
 {
-  "name": "MacBook Pro 16",
-  "description": "Apple MacBook Pro 16-inch with M2 chip",
-  "price": 2499.99,
+  "name": "iPhone 15 Pro",
+  "productCategoryId": 1,
+  "superCategoryId": 1,
   "categoryId": 1,
-  "images": ["image1.jpg", "image2.jpg"],
-  "specifications": {
-    "processor": "M2 Pro",
-    "memory": "16GB",
-    "storage": "512GB SSD"
-  },
-  "variants": [
+  "subCategoryId": 1,
+  "isActive": true,
+  "productType": "smartphone",
+  "userId": 2,
+  "pricing": [
     {
-      "name": "Space Gray",
-      "price": 2499.99,
-      "sku": "MBP16-SG-512"
+      "label": "Standard",
+      "price": 999.99,
+      "currency": "USD",
+      "currencySymbol": "$"
     }
-  ]
+  ],
+  "images": {
+    "black": ["https://example.com/image1.jpg"],
+    "white": ["https://example.com/image2.jpg"]
+  },
+  "attributes": {
+    "brand": "Apple",
+    "capacity": "128GB",
+    "power": "A17 Pro"
+  }
 }
 ```
 
-### 14. Get Product by ID
+### 29. Get All Products (Admin)
+
+```http
+GET /api/products/all-list?page=1&limit=10
+Authorization: Bearer <admin_token>
+```
+
+### 30. Get Products by Role
+
+```http
+GET /api/products/all?page=1&limit=10
+Authorization: Bearer <token>
+```
+
+### 31. Get Product by ID
 
 ```http
 GET /api/products/1
+Authorization: Bearer <token>
 ```
 
-### 15. Update Product (Vendor Only)
+### 32. Update Product
 
 ```http
 PUT /api/products/1
@@ -194,12 +365,19 @@ Authorization: Bearer <vendor_token>
 Content-Type: application/json
 
 {
-  "name": "MacBook Pro 16 - Updated",
-  "price": 2399.99
+  "name": "iPhone 15 Pro - Updated",
+  "userId": 2,
+  "pricing": [
+    {
+      "label": "Standard",
+      "price": 899.99,
+      "currency": "USD"
+    }
+  ]
 }
 ```
 
-### 16. Delete Product (Vendor Only)
+### 33. Delete Product
 
 ```http
 DELETE /api/products/1
@@ -210,14 +388,7 @@ Authorization: Bearer <vendor_token>
 
 ## 🛒 **SHOPPING CART**
 
-### 17. Get Cart Items
-
-```http
-GET /api/cart
-Authorization: Bearer <token>
-```
-
-### 18. Add Item to Cart
+### 34. Add Item to Cart
 
 ```http
 POST /api/cart/add
@@ -228,16 +399,23 @@ Content-Type: application/json
   "productId": 1,
   "quantity": 2,
   "selectedVariant": {
-    "color": "Space Gray",
-    "storage": "512GB"
+    "color": "black",
+    "storage": "128GB"
   }
 }
 ```
 
-### 19. Update Cart Item
+### 35. Get Cart Items
 
 ```http
-PUT /api/cart/1
+GET /api/cart
+Authorization: Bearer <token>
+```
+
+### 36. Update Cart Item
+
+```http
+PUT /api/cart/:cartItemId
 Authorization: Bearer <token>
 Content-Type: application/json
 
@@ -246,39 +424,32 @@ Content-Type: application/json
 }
 ```
 
-### 20. Remove Item from Cart
+### 37. Remove Item from Cart
 
 ```http
-DELETE /api/cart/1
+DELETE /api/cart/:cartItemId
 Authorization: Bearer <token>
 ```
 
-### 21. Clear Cart
+### 38. Clear Cart
 
 ```http
-DELETE /api/cart/clear
+DELETE /api/cart
 Authorization: Bearer <token>
 ```
 
-### 22. Validate Cart
+### 39. Validate Cart
 
 ```http
-POST /api/cart/validate
+GET /api/cart/validate?checkStock=true
 Authorization: Bearer <token>
 ```
 
 ---
 
-## 📍 **ADDRESSES**
+## 📍 **ADDRESS MANAGEMENT**
 
-### 23. Get User Addresses
-
-```http
-GET /api/addresses?type=shipping
-Authorization: Bearer <token>
-```
-
-### 24. Create Address
+### 40. Create Address
 
 ```http
 POST /api/addresses
@@ -300,17 +471,31 @@ Content-Type: application/json
 }
 ```
 
-### 25. Get Address by ID
+### 41. Get User Addresses
 
 ```http
-GET /api/addresses/1
+GET /api/addresses?type=shipping
 Authorization: Bearer <token>
 ```
 
-### 26. Update Address
+### 42. Get Default Address
 
 ```http
-PUT /api/addresses/1
+GET /api/addresses/default/shipping
+Authorization: Bearer <token>
+```
+
+### 43. Get Address by ID
+
+```http
+GET /api/addresses/:addressId
+Authorization: Bearer <token>
+```
+
+### 44. Update Address
+
+```http
+PUT /api/addresses/:addressId
 Authorization: Bearer <token>
 Content-Type: application/json
 
@@ -321,39 +506,25 @@ Content-Type: application/json
 }
 ```
 
-### 27. Delete Address
+### 45. Set Default Address
 
 ```http
-DELETE /api/addresses/1
+PUT /api/addresses/:addressId/default
 Authorization: Bearer <token>
 ```
 
-### 28. Set Default Address
+### 46. Delete Address
 
 ```http
-PUT /api/addresses/1/default
-Authorization: Bearer <token>
-```
-
-### 29. Get Default Address
-
-```http
-GET /api/addresses/default/shipping
+DELETE /api/addresses/:addressId
 Authorization: Bearer <token>
 ```
 
 ---
 
-## 🛍️ **ORDERS**
+## 🛍️ **ORDER MANAGEMENT**
 
-### 30. Get User Orders
-
-```http
-GET /api/orders?page=1&limit=10
-Authorization: Bearer <token>
-```
-
-### 31. Create Order from Cart
+### 47. Create Order
 
 ```http
 POST /api/orders
@@ -364,28 +535,36 @@ Content-Type: application/json
   "shippingAddressId": 1,
   "billingAddressId": 1,
   "paymentMethod": "stripe",
-  "notes": "Please handle with care"
+  "notes": "Handle with care",
+  "couponCode": "SAVE10"
 }
 ```
 
-### 32. Get Order by ID
+### 48. Get User Orders
 
 ```http
-GET /api/orders/1
+GET /api/orders?page=1&limit=10&status=pending
 Authorization: Bearer <token>
 ```
 
-### 33. Cancel Order
+### 49. Get Orders by Status
 
 ```http
-PUT /api/orders/1/cancel
+GET /api/orders/status/pending
 Authorization: Bearer <token>
 ```
 
-### 34. Update Order Status (Vendor/Admin)
+### 50. Get Order by ID
 
 ```http
-PUT /api/orders/1/status
+GET /api/orders/:orderId
+Authorization: Bearer <token>
+```
+
+### 51. Update Order Status
+
+```http
+PUT /api/orders/:orderId
 Authorization: Bearer <vendor_token>
 Content-Type: application/json
 
@@ -394,11 +573,23 @@ Content-Type: application/json
 }
 ```
 
+### 52. Cancel Order
+
+```http
+PUT /api/orders/:orderId/cancel
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "reason": "Changed mind"
+}
+```
+
 ---
 
-## 💳 **PAYMENTS**
+## 💳 **PAYMENT PROCESSING**
 
-### 35. Initiate Payment
+### 53. Initiate Payment
 
 ```http
 POST /api/payments/initiate
@@ -408,14 +599,14 @@ Content-Type: application/json
 {
   "orderId": 1,
   "paymentMethod": "stripe",
-  "amount": 2499.99
+  "amount": 999.99
 }
 ```
 
-### 36. Payment Callback (Webhook)
+### 54. Payment Callback
 
 ```http
-POST /api/payments/1/callback
+POST /api/payments/:paymentId/callback
 Content-Type: application/json
 
 {
@@ -424,10 +615,10 @@ Content-Type: application/json
 }
 ```
 
-### 37. Stripe Callback
+### 55. Stripe Callback
 
 ```http
-POST /api/payments/1/stripe/callback
+POST /api/payments/:paymentId/stripe/callback
 Content-Type: application/json
 
 {
@@ -436,10 +627,10 @@ Content-Type: application/json
 }
 ```
 
-### 38. PayPal Callback
+### 56. PayPal Callback
 
 ```http
-POST /api/payments/1/paypal/callback
+POST /api/payments/:paymentId/paypal/callback
 Content-Type: application/json
 
 {
@@ -448,48 +639,41 @@ Content-Type: application/json
 }
 ```
 
-### 39. Refund Payment (Admin Only)
+### 57. Refund Payment (Admin)
 
 ```http
-POST /api/payments/1/refund
+POST /api/payments/:paymentId/refund
 Authorization: Bearer <admin_token>
 Content-Type: application/json
 
 {
   "reason": "Customer request",
-  "amount": 2499.99
+  "amount": 999.99
 }
 ```
 
-### 40. Get Order Payments
+### 58. Get Order Payments
 
 ```http
-GET /api/payments/order/1
+GET /api/payments/order/:orderId
 Authorization: Bearer <token>
 ```
 
-### 41. Get Payment Details
+### 59. Get Payment Details
 
 ```http
-GET /api/payments/1
+GET /api/payments/:paymentId
 Authorization: Bearer <token>
 ```
 
 ---
 
-## 📦 **SHIPPING**
+## 📦 **SHIPPING & DELIVERY**
 
-### 42. Get Order Shipping
-
-```http
-GET /api/shipping/order/1
-Authorization: Bearer <token>
-```
-
-### 43. Update Shipping Status (Admin/Delivery)
+### 60. Update Shipping Status
 
 ```http
-PUT /api/shipping/1/status
+PUT /api/shipping/:shippingId/status
 Authorization: Bearer <admin_token>
 Content-Type: application/json
 
@@ -500,17 +684,31 @@ Content-Type: application/json
 }
 ```
 
-### 44. Track Shipment (Public)
+### 61. Get Shipping Info
 
 ```http
-GET /api/shipping/track/TRK123456789
+GET /api/shipping/order/:orderId
+Authorization: Bearer <token>
+```
+
+### 62. Track Shipment (Public)
+
+```http
+GET /api/shipping/track/:trackingNumber
+```
+
+### 63. Get Delivery Assignments
+
+```http
+GET /api/shipping/delivery/assignments?page=1&limit=10
+Authorization: Bearer <delivery_token>
 ```
 
 ---
 
-## ⭐ **REVIEWS**
+## ⭐ **REVIEWS & RATINGS**
 
-### 45. Create Product Review
+### 64. Create Review
 
 ```http
 POST /api/reviews
@@ -521,41 +719,41 @@ Content-Type: application/json
   "productId": 1,
   "rating": 5,
   "title": "Excellent Product!",
-  "comment": "This MacBook Pro exceeded my expectations. Great performance and build quality."
+  "comment": "This product exceeded my expectations."
 }
 ```
 
-### 46. Get Product Reviews
+### 65. Get Product Reviews
 
 ```http
-GET /api/reviews/product/1?page=1&limit=10&rating=5&sortBy=createdAt&sortOrder=DESC
+GET /api/reviews/product/:productId?page=1&limit=10&rating=5&sortBy=createdAt&sortOrder=DESC
 ```
 
-### 47. Get User Reviews
+### 66. Get User Reviews
 
 ```http
 GET /api/reviews/user
 Authorization: Bearer <token>
 ```
 
-### 48. Update Review
+### 67. Update Review
 
 ```http
-PUT /api/reviews/1
+PUT /api/reviews/:reviewId
 Authorization: Bearer <token>
 Content-Type: application/json
 
 {
   "rating": 4,
   "title": "Good Product - Updated",
-  "comment": "Updated review: Still a good product but found some minor issues."
+  "comment": "Updated review comment."
 }
 ```
 
-### 49. Delete Review
+### 68. Delete Review
 
 ```http
-DELETE /api/reviews/1
+DELETE /api/reviews/:reviewId
 Authorization: Bearer <token>
 ```
 
@@ -563,24 +761,24 @@ Authorization: Bearer <token>
 
 ## 👨‍💼 **ADMIN PANEL**
 
-### 50. Admin Dashboard
+### 69. Admin Dashboard
 
 ```http
 GET /api/admin/dashboard
 Authorization: Bearer <admin_token>
 ```
 
-### 51. Get All Users (Admin)
+### 70. Get All Users
 
 ```http
 GET /api/admin/users?page=1&limit=10&userType=normal&status=active
 Authorization: Bearer <admin_token>
 ```
 
-### 52. Update User Status (Admin)
+### 71. Update User Status
 
 ```http
-PUT /api/admin/users/1/status
+PUT /api/admin/users/:userId/status
 Authorization: Bearer <admin_token>
 Content-Type: application/json
 
@@ -590,17 +788,17 @@ Content-Type: application/json
 }
 ```
 
-### 53. Get All Orders (Admin)
+### 72. Get All Orders
 
 ```http
 GET /api/admin/orders?page=1&limit=10&status=pending
 Authorization: Bearer <admin_token>
 ```
 
-### 54. Get All Products (Admin)
+### 73. Get Revenue Report
 
 ```http
-GET /api/admin/products?page=1&limit=10&status=active
+GET /api/admin/reports/revenue
 Authorization: Bearer <admin_token>
 ```
 
@@ -608,31 +806,31 @@ Authorization: Bearer <admin_token>
 
 ## 🏪 **VENDOR PANEL**
 
-### 55. Vendor Dashboard
+### 74. Vendor Dashboard
 
 ```http
 GET /api/vendor/dashboard
 Authorization: Bearer <vendor_token>
 ```
 
-### 56. Get Vendor Products
+### 75. Get Vendor Products
 
 ```http
-GET /api/vendor/products?page=1&limit=10&category=1&status=active&search=laptop
+GET /api/vendor/products?page=1&limit=10&status=active
 Authorization: Bearer <vendor_token>
 ```
 
-### 57. Get Vendor Orders
+### 76. Get Vendor Orders
 
 ```http
-GET /api/vendor/orders?page=1&limit=10&status=pending&startDate=2024-01-01&endDate=2024-12-31
+GET /api/vendor/orders?page=1&limit=10&status=pending
 Authorization: Bearer <vendor_token>
 ```
 
-### 58. Update Order Status (Vendor)
+### 77. Update Order Status (Vendor)
 
 ```http
-PUT /api/vendor/orders/1/status
+PUT /api/vendor/orders/:orderId/status
 Authorization: Bearer <vendor_token>
 Content-Type: application/json
 
@@ -641,10 +839,10 @@ Content-Type: application/json
 }
 ```
 
-### 59. Inventory Report
+### 78. Get Inventory Report
 
 ```http
-GET /api/vendor/inventory
+GET /api/vendor/inventory/report
 Authorization: Bearer <vendor_token>
 ```
 
@@ -652,39 +850,110 @@ Authorization: Bearer <vendor_token>
 
 ## 🚚 **DELIVERY PANEL**
 
-### 60. Get Assigned Deliveries
+### 79. Delivery Dashboard
 
 ```http
-GET /api/delivery/assignments?page=1&limit=10&status=assigned
+GET /api/delivery/dashboard
 Authorization: Bearer <delivery_token>
 ```
 
-### 61. Update Delivery Status
+### 80. Get Assigned Orders
 
 ```http
-PUT /api/delivery/1/status
+GET /api/delivery/orders?page=1&limit=10&status=assigned
+Authorization: Bearer <delivery_token>
+```
+
+### 81. Update Delivery Status
+
+```http
+PUT /api/delivery/orders/:orderId/status
 Authorization: Bearer <delivery_token>
 Content-Type: application/json
 
 {
   "status": "picked_up",
   "location": "Picked up from warehouse",
-  "notes": "Package secured for delivery"
+  "notes": "Package secured"
 }
 ```
 
-### 62. Complete Delivery
+### 82. Get Delivery Route
 
 ```http
-PUT /api/delivery/1/complete
+GET /api/delivery/route?date=2024-01-15
 Authorization: Bearer <delivery_token>
+```
+
+## 📦 **INVENTORY MANAGEMENT (Admin/Vendor)**
+
+### 83. Create Inventory
+
+```http
+POST /api/inventory/create
+Authorization: Bearer <admin_token>
 Content-Type: application/json
 
 {
-  "deliveryProof": "https://example.com/proof.jpg",
-  "recipientName": "John Doe",
-  "notes": "Delivered successfully to customer"
+  "productId": 1,
+  "sku": "PHONE-001",
+  "quantity": 100,
+  "reorderLevel": 10
 }
+```
+
+### 84. Get Product Inventory
+
+```http
+GET /api/inventory/product/:productId
+Authorization: Bearer <admin_token>
+```
+
+### 85. Update Product Inventory
+
+```http
+PUT /api/inventory/product/:productId
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+{
+  "quantity": 150,
+  "reorderLevel": 15,
+  "sku": "PHONE-001-UPDATED"
+}
+```
+
+### 86. Restock Product
+
+```http
+POST /api/inventory/restock/:productId
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+{
+  "quantity": 50
+}
+```
+
+### 87. Get Low Stock Products
+
+```http
+GET /api/inventory/low-stock
+Authorization: Bearer <admin_token>
+```
+
+### 88. Get Out of Stock Products
+
+```http
+GET /api/inventory/out-of-stock
+Authorization: Bearer <admin_token>
+```
+
+### 89. Get Inventory Report
+
+```http
+GET /api/inventory/report
+Authorization: Bearer <admin_token>
 ```
 
 ---
@@ -772,4 +1041,4 @@ Content-Type: application/json
 6. Check pagination and filtering
 7. Validate response formats
 
-This comprehensive guide covers all 62+ endpoints in your e-commerce backend system!
+This comprehensive guide covers all 89+ endpoints in your e-commerce backend system!

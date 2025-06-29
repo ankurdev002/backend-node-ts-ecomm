@@ -39,63 +39,64 @@ import {
   updateSubCategorySchema,
   updateSuperCategorySchema,
 } from "../schema/category.schema";
+import { ENDPOINTS } from "../constants/endpoint";
 
 const router = Router();
 
 // SuperCategory Routes
 router.post(
-  "/super-category",
+ ENDPOINTS.ADMIN_ROUTE.SUPER_CATEGORY,
   validate(createSuperCategorySchema),
   createSuperCategory
 );
-router.get("/super-categories", paginate(SuperCategory), getAllSuperCategories);
-router.get("/super-category/:id", getSuperCategoryById);
+router.get(ENDPOINTS.ADMIN_ROUTE.SUPER_CATEGORIES, paginate(SuperCategory), getAllSuperCategories);
+router.get(ENDPOINTS.ADMIN_ROUTE.SUPER_CATEGORY_BY_ID, getSuperCategoryById);
 router.put(
-  "/super-category/:id",
+  ENDPOINTS.ADMIN_ROUTE.UPDATE_SUPER_CATEGORY,
   validate(updateSuperCategorySchema),
   updateSuperCategory
 );
-router.delete("/super-category/:id", deleteSuperCategory);
+router.delete(ENDPOINTS.ADMIN_ROUTE.DELETE_SUPER_CATEGORY, deleteSuperCategory);
 
 // Category Routes
-router.post("/category", validate(createCategorySchema), createCategory);
-router.get("/categories", paginate(Category), getAllCategories);
-router.get("/category/:id", getCategoryById);
-router.put("/category/:id", validate(updateCategorySchema), updateCategory);
-router.delete("/category/:id", deleteCategory);
+router.post(ENDPOINTS.ADMIN_ROUTE.CATEGORY, validate(createCategorySchema), createCategory);
+router.get(ENDPOINTS.ADMIN_ROUTE.CATEGORIES, paginate(Category), getAllCategories);
+router.get(ENDPOINTS.ADMIN_ROUTE.CATEGORY_BY_ID, getCategoryById);
+router.put(ENDPOINTS.ADMIN_ROUTE.UPDATE_CATEGORY, validate(updateCategorySchema), updateCategory);
+router.delete(ENDPOINTS.ADMIN_ROUTE.DELETE_CATEGORY, deleteCategory);
 
 // SubCategory Routes
 router.post(
-  "/sub-category",
+  ENDPOINTS.ADMIN_ROUTE.SUB_CATEGORY,
   validate(createSubCategorySchema),
   createSubCategory
 );
-router.get("/sub-categories", paginate(SubCategory), getAllSubCategories);
-router.get("/sub-category/:id", getSubCategoryById);
+router.get(ENDPOINTS.ADMIN_ROUTE.SUB_CATEGORIES, paginate(SubCategory), getAllSubCategories);
+router.get(ENDPOINTS.ADMIN_ROUTE.SUB_CATEGORY_BY_ID, getSubCategoryById);
 router.put(
-  "/sub-category/:id",
+  ENDPOINTS.ADMIN_ROUTE.UPDATE_SUB_CATEGORY,
   validate(updateSubCategorySchema),
   updateSubCategory
 );
-router.delete("/sub-category/:id", deleteSubCategory);
+router.delete(ENDPOINTS.ADMIN_ROUTE.DELETE_SUB_CATEGORY, deleteSubCategory);
 
 // productCategory Routes
 router.post(
-  "/product-category",
+  ENDPOINTS.ADMIN_ROUTE.PRODUCT_CATEGORY,
   validate(createProductCategorySchema),
   createProductCategory
 );
 router.get(
-  "/product-categories",
+  ENDPOINTS.ADMIN_ROUTE.PRODUCT_CATEGORIES,
   paginate(ProductCategory),
   getAllProductCategories
 );
-router.get("/product-category/:id", getProductCategoryById);
+router.get(ENDPOINTS.ADMIN_ROUTE.PRODUCT_CATEGORY_BY_ID, getProductCategoryById);
 router.put(
-  "/product-category/:id",
+  ENDPOINTS.ADMIN_ROUTE.UPDATE_PRODUCT_CATEGORY,
   validate(updateProductCategorySchema),
   updateProductCategory
 );
-router.delete("/product-category/:id", deleteProductCategory);
+router.delete(ENDPOINTS.ADMIN_ROUTE.DELETE_PRODUCT_CATEGORY, deleteProductCategory);
 
 export default router;

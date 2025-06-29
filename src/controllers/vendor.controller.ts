@@ -313,30 +313,40 @@ export const getInventoryReport = async (
       });
     }
 
-    const inventory = await Inventory.findAll({
-      include: [
-        {
-          model: Product,
-          as: "product",
-          where: { userId },
-          attributes: ["id", "name", "images"],
-        },
-      ],
+    // Get all inventory without include to avoid association issues
+    const allInventory = await Inventory.findAll({
       order: [["quantity", "ASC"]],
     });
 
-    const lowStockItems = inventory.filter((item) => (item as any).isLowStock);
-    const outOfStockItems = inventory.filter(
-      (item) => (item as any).isOutOfStock
-    );
+    // Filter inventory for vendor's products and attach product data
+    const vendorInventory = [];
+    for (const inventoryItem of allInventory) {
+      const product = await Product.findOne({
+        where: {
+          id: inventoryItem.productId,
+          userId,
+        },
+        attributes: ["id", "name", "images"],
+      });
+
+      if (product) {
+        vendorInventory.push({
+          ...inventoryItem.toJSON(),
+          product: product.toJSON(),
+        });
+      }
+    }
+
+    const lowStockItems = vendorInventory.filter((item) => item.isLowStock);
+    const outOfStockItems = vendorInventory.filter((item) => item.isOutOfStock);
 
     res.json({
       success: true,
       message: "Inventory report retrieved successfully",
       data: {
-        inventory,
+        inventory: vendorInventory,
         summary: {
-          totalItems: inventory.length,
+          totalItems: vendorInventory.length,
           lowStockItems: lowStockItems.length,
           outOfStockItems: outOfStockItems.length,
         },

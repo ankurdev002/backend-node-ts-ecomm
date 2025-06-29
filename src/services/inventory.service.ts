@@ -59,9 +59,9 @@ export const restockInventory = async (
   productId: number,
   additionalQuantity: number
 ) => {
+  // Get inventory without include to avoid association issues
   const inventory = await Inventory.findOne({
     where: { productId },
-    include: [{ model: Product, as: "product" }],
   });
 
   if (!inventory) {
@@ -72,81 +72,120 @@ export const restockInventory = async (
   inventory.lastRestocked = new Date();
   await inventory.save();
 
-  // Create notification for vendor if stock was low
-  if (inventory.product && inventory.product.userId) {
+  // Get product separately for notification
+  const product = await Product.findByPk(productId);
+
+  // Create notification for vendor if stock was low and product exists
+  if (product && product.userId) {
     await Notification.create({
-      userId: inventory.product.userId,
+      userId: product.userId,
       title: "Inventory Restocked",
-      message: `${additionalQuantity} units added to ${inventory.product.name}. Current stock: ${inventory.quantity}`,
+      message: `${additionalQuantity} units added to ${product.name}. Current stock: ${inventory.quantity}`,
       type: "info",
       relatedId: productId,
       relatedType: "product",
     });
   }
 
-  return inventory;
+  // Return inventory with product data manually attached
+  const inventoryWithProduct = {
+    ...inventory.toJSON(),
+    product: product ? product.toJSON() : null,
+  };
+
+  return inventoryWithProduct;
 };
 
 export const getLowStockProducts = async (vendorId?: number) => {
-  const whereClause: any = {
-    quantity: {
-      [Op.lte]: Inventory.sequelize?.col("reorderLevel"),
-    },
-  };
-
-  const includeClause: any = {
-    model: Product,
-    as: "product",
-    where: { isActive: true },
-  };
-
-  if (vendorId) {
-    includeClause.where.userId = vendorId;
-  }
-
+  // Get low stock inventory items without include
   const lowStockItems = await Inventory.findAll({
-    where: whereClause,
-    include: [includeClause],
+    where: {
+      quantity: {
+        [Op.lte]: Inventory.sequelize?.col("reorderLevel"),
+      },
+    },
     order: [["quantity", "ASC"]],
   });
 
-  return lowStockItems;
+  // Get products separately and filter by vendor if needed
+  const inventoryWithProducts = [];
+
+  for (const inventory of lowStockItems) {
+    const product = await Product.findOne({
+      where: {
+        id: inventory.productId,
+        isActive: true,
+        ...(vendorId && { userId: vendorId }),
+      },
+    });
+
+    if (product) {
+      inventoryWithProducts.push({
+        ...inventory.toJSON(),
+        product: product.toJSON(),
+      });
+    }
+  }
+
+  return inventoryWithProducts;
 };
 
 export const getOutOfStockProducts = async (vendorId?: number) => {
-  const whereClause: any = {
-    quantity: 0,
-  };
-
-  const includeClause: any = {
-    model: Product,
-    as: "product",
-    where: { isActive: true },
-  };
-
-  if (vendorId) {
-    includeClause.where.userId = vendorId;
-  }
-
+  // Get out of stock inventory items without include
   const outOfStockItems = await Inventory.findAll({
-    where: whereClause,
-    include: [includeClause],
+    where: {
+      quantity: 0,
+    },
   });
 
-  return outOfStockItems;
+  // Get products separately and filter by vendor if needed
+  const inventoryWithProducts = [];
+
+  for (const inventory of outOfStockItems) {
+    const product = await Product.findOne({
+      where: {
+        id: inventory.productId,
+        isActive: true,
+        ...(vendorId && { userId: vendorId }),
+      },
+    });
+
+    if (product) {
+      inventoryWithProducts.push({
+        ...inventory.toJSON(),
+        product: product.toJSON(),
+      });
+    }
+  }
+
+  return inventoryWithProducts;
 };
 
 export const getInventoryByProduct = async (productId: number) => {
-  const inventory = await Inventory.findOne({
-    where: { productId },
-    include: [{ model: Product, as: "product" }],
-  });
+  try {
+    // Get inventory without include first
+    const inventory = await Inventory.findOne({
+      where: { productId },
+    });
 
-  if (!inventory) {
-    throw new Error("Inventory not found");
+    if (!inventory) {
+      throw new Error("Inventory not found");
+    }
+
+    // Get product separately to avoid association issues
+    const product = await Product.findByPk(productId);
+
+    // Manually attach product data to inventory
+    const inventoryWithProduct = {
+      ...inventory.toJSON(),
+      product: product ? product.toJSON() : null,
+    };
+
+    return inventoryWithProduct;
+  } catch (error: any) {
+    console.error("Database query error:", error);
+    throw new Error(`Failed to fetch inventory: ${error.message}`);
   }
-
-  return inventory;
 };
 
 export const checkStock = async (
@@ -208,9 +247,9 @@ export const releaseStock = async (productId: number, quantity: number) => {
 };
 
 export const fulfillOrder = async (productId: number, quantity: number) => {
+  // Get inventory without include to avoid association issues
   const inventory = await Inventory.findOne({
     where: { productId },
-    include: [{ model: Product, as: "product" }],
   });
 
   if (!inventory) {
@@ -222,40 +261,64 @@ export const fulfillOrder = async (productId: number, quantity: number) => {
     throw new Error("Cannot fulfill order - insufficient stock");
   }
 
+  // Get product separately for notification
+  const product = await Product.findByPk(productId);
+
   // Check if stock is now low and notify vendor
-  if (inventory.isLowStock && inventory.product && inventory.product.userId) {
+  if (inventory.isLowStock && product && product.userId) {
     await Notification.create({
-      userId: inventory.product.userId,
+      userId: product.userId,
       title: "Low Stock Alert",
-      message: `${inventory.product.name} is running low on stock. Current quantity: ${inventory.quantity}`,
+      message: `${product.name} is running low on stock. Current quantity: ${inventory.quantity}`,
       type: "warning",
       relatedId: productId,
       relatedType: "product",
     });
   }
 
-  return inventory;
+  // Return inventory with product data manually attached
+  const inventoryWithProduct = {
+    ...inventory.toJSON(),
+    product: product ? product.toJSON() : null,
+  };
+
+  return inventoryWithProduct;
 };
 
 export const getInventoryReport = async (vendorId?: number) => {
-  const includeClause: any = {
-    model: Product,
-    as: "product",
-    where: { isActive: true },
-  };
+  // Get all inventory items without include
+  const allInventory = await Inventory.findAll({});
 
-  if (vendorId) {
-    includeClause.where.userId = vendorId;
+  // Get products separately and filter by vendor if needed
+  const inventoryWithProducts = [];
+
+  for (const inventory of allInventory) {
+    const product = await Product.findOne({
+      where: {
+        id: inventory.productId,
+        isActive: true,
+        ...(vendorId && { userId: vendorId }),
+      },
+    });
+
+    if (product) {
+      inventoryWithProducts.push({
+        ...inventory.toJSON(),
+        product: product.toJSON(),
+        isLowStock: inventory.isLowStock,
+        isOutOfStock: inventory.isOutOfStock,
+      });
+    }
   }
 
-  const allInventory = await Inventory.findAll({
-    include: [includeClause],
-  });
-
-  const totalProducts = allInventory.length;
-  const lowStockCount = allInventory.filter((inv) => inv.isLowStock).length;
-  const outOfStockCount = allInventory.filter((inv) => inv.isOutOfStock).length;
-  const totalValue = allInventory.reduce((sum, inv) => {
+  const totalProducts = inventoryWithProducts.length;
+  const lowStockCount = inventoryWithProducts.filter(
+    (inv) => inv.isLowStock
+  ).length;
+  const outOfStockCount = inventoryWithProducts.filter(
+    (inv) => inv.isOutOfStock
+  ).length;
+  const totalValue = inventoryWithProducts.reduce((sum, inv) => {
     const price = inv.product.pricing[0]?.finalPrice || 0;
     return sum + inv.quantity * price;
   }, 0);
@@ -267,7 +330,7 @@ export const getInventoryReport = async (vendorId?: number) => {
       outOfStockCount,
       totalValue: Math.round(totalValue * 100) / 100,
     },
-    lowStockProducts: allInventory.filter((inv) => inv.isLowStock),
-    outOfStockProducts: allInventory.filter((inv) => inv.isOutOfStock),
+    lowStockProducts: inventoryWithProducts.filter((inv) => inv.isLowStock),
+    outOfStockProducts: inventoryWithProducts.filter((inv) => inv.isOutOfStock),
   };
 };

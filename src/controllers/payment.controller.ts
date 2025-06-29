@@ -99,15 +99,26 @@ export const getOrderPayments = async (
 ): Promise<any> => {
   try {
     const { orderId } = req.params;
+
+    // Get payments without include to avoid association issues
     const payments = await Payment.findAll({
       where: { orderId: parseInt(orderId) },
-      include: [{ model: Order, as: "order" }],
     });
+
+    // Get order data separately for each payment
+    const paymentsWithOrder = [];
+    for (const payment of payments) {
+      const order = await Order.findByPk(payment.orderId);
+      paymentsWithOrder.push({
+        ...payment.toJSON(),
+        order: order ? order.toJSON() : null,
+      });
+    }
 
     res.json({
       success: true,
       message: "Order payments retrieved successfully",
-      data: payments,
+      data: paymentsWithOrder,
     });
   } catch (error: any) {
     res.status(500).json({
@@ -123,9 +134,9 @@ export const getPayment = async (
 ): Promise<any> => {
   try {
     const { paymentId } = req.params;
-    const payment = await Payment.findByPk(parseInt(paymentId), {
-      include: [{ model: Order, as: "order" }],
-    });
+
+    // Get payment without include to avoid association issues
+    const payment = await Payment.findByPk(parseInt(paymentId));
 
     if (!payment) {
       return res.status(404).json({
@@ -134,10 +145,18 @@ export const getPayment = async (
       });
     }
 
+    // Get order data separately
+    const order = await Order.findByPk(payment.orderId);
+
+    const paymentWithOrder = {
+      ...payment.toJSON(),
+      order: order ? order.toJSON() : null,
+    };
+
     res.json({
       success: true,
       message: "Payment retrieved successfully",
-      data: payment,
+      data: paymentWithOrder,
     });
   } catch (error: any) {
     res.status(500).json({

@@ -31,21 +31,36 @@ export const createOrderFromCart = async (orderData: CreateOrderData) => {
       notes,
     } = orderData;
 
-    // Get cart items
+    // Get cart items without include to avoid association issues
     const cartItems = await Cart.findAll({
       where: { userId },
-      include: [
-        {
-          model: Product,
-          as: "product",
-          include: [{ model: Inventory, as: "inventory" }],
-        },
-      ],
       transaction,
     });
 
     if (cartItems.length === 0) {
       throw new Error("Cart is empty");
+    }
+
+    // Get products and inventory separately for each cart item
+    const cartItemsWithProducts = [];
+    for (const cartItem of cartItems) {
+      const product = await Product.findByPk(cartItem.productId, {
+        transaction,
+      });
+      const inventory = await Inventory.findOne({
+        where: { productId: cartItem.productId },
+        transaction,
+      });
+
+      if (product) {
+        cartItemsWithProducts.push({
+          ...cartItem.toJSON(),
+          product: {
+            ...product.toJSON(),
+            inventory: inventory ? inventory.toJSON() : null,
+          },
+        });
+      }
     }
 
     // Validate addresses
@@ -63,16 +78,26 @@ export const createOrderFromCart = async (orderData: CreateOrderData) => {
     const orderItems = [];
 
     // Validate stock and calculate totals
-    for (const cartItem of cartItems) {
+    for (const cartItem of cartItemsWithProducts) {
       if (!cartItem.product.isActive) {
         throw new Error(
           `Product ${cartItem.product.name} is no longer available`
         );
       }
 
-      const inventory = cartItem.product.inventory;
-      if (inventory && !(await inventory.reserveStock(cartItem.quantity))) {
-        throw new Error(`Insufficient stock for ${cartItem.product.name}`);
+      const inventoryData = cartItem.product.inventory;
+      if (inventoryData) {
+        // Get the actual inventory instance to call reserveStock method
+        const inventory = await Inventory.findOne({
+          where: { productId: cartItem.productId },
+          transaction,
+        });
+
+        if (inventory && !(await inventory.reserveStock(cartItem.quantity))) {
+          throw new Error(`Insufficient stock for ${cartItem.product.name}`);
+        }
+      } else {
+        throw new Error(`No inventory found for ${cartItem.product.name}`);
       }
 
       const itemTotal = cartItem.quantity * cartItem.price;
@@ -93,9 +118,15 @@ export const createOrderFromCart = async (orderData: CreateOrderData) => {
     const taxAmount = totalAmount * taxRate;
     const finalAmount = totalAmount + shippingAmount + taxAmount;
 
+    // Generate unique order number
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 1000);
+    const orderNumber = `ORD-${timestamp}-${random}`;
+
     // Create order
     const order = await Order.create(
       {
+        orderNumber,
         userId,
         totalAmount,
         discountAmount: 0,
@@ -173,48 +204,104 @@ export const getOrderById = async (
   }
   // ADMIN can see all orders
 
+  // Get order without include to avoid association issues
   const order = await Order.findOne({
     where: whereClause,
-    include: [
-      {
-        model: OrderItem,
-        as: "items",
-        include: [{ model: Product, as: "product" }],
-      },
-      { model: Address, as: "shippingAddress" },
-      { model: Address, as: "billingAddress" },
-      { model: Payment, as: "payments" },
-      { model: Shipping, as: "shipping" },
-    ],
   });
 
   if (!order) {
     throw new Error("Order not found");
   }
 
-  return order;
+  // Get related data separately
+  // Get order items
+  const orderItems = await OrderItem.findAll({
+    where: { orderId: order.id },
+  });
+
+  // Get products for each order item
+  const itemsWithProducts = [];
+  for (const item of orderItems) {
+    const product = await Product.findByPk(item.productId);
+    itemsWithProducts.push({
+      ...item.toJSON(),
+      product: product ? product.toJSON() : null,
+    });
+  }
+
+  // Get addresses
+  const shippingAddress = await Address.findByPk(order.shippingAddressId);
+  const billingAddress = order.billingAddressId
+    ? await Address.findByPk(order.billingAddressId)
+    : null;
+
+  // Get payments
+  const payments = await Payment.findAll({
+    where: { orderId: order.id },
+  });
+
+  // Get shipping
+  const shipping = await Shipping.findOne({
+    where: { orderId: order.id },
+  });
+
+  // Combine all data
+  const orderWithDetails = {
+    ...order.toJSON(),
+    items: itemsWithProducts,
+    shippingAddress: shippingAddress ? shippingAddress.toJSON() : null,
+    billingAddress: billingAddress ? billingAddress.toJSON() : null,
+    payments: payments.map((payment) => payment.toJSON()),
+    shipping: shipping ? shipping.toJSON() : null,
+  };
+
+  return orderWithDetails;
 };
 
 export const getUserOrders = async (userId: number, page = 1, limit = 10) => {
   const offset = (page - 1) * limit;
 
+  // Get orders without include to avoid association issues
   const { count, rows: orders } = await Order.findAndCountAll({
     where: { userId },
-    include: [
-      {
-        model: OrderItem,
-        as: "items",
-        include: [{ model: Product, as: "product" }],
-      },
-      { model: Shipping, as: "shipping" },
-    ],
     order: [["createdAt", "DESC"]],
     limit,
     offset,
   });
 
+  // Fetch related data separately for each order
+  const ordersWithDetails = [];
+  for (const order of orders) {
+    // Get order items
+    const orderItems = await OrderItem.findAll({
+      where: { orderId: order.id },
+    });
+
+    // Get products for each order item
+    const itemsWithProducts = [];
+    for (const item of orderItems) {
+      const product = await Product.findByPk(item.productId);
+      itemsWithProducts.push({
+        ...item.toJSON(),
+        product: product ? product.toJSON() : null,
+      });
+    }
+
+    // Get shipping info
+    const shipping = await Shipping.findOne({
+      where: { orderId: order.id },
+    });
+
+    // Combine all data
+    ordersWithDetails.push({
+      ...order.toJSON(),
+      items: itemsWithProducts,
+      shipping: shipping ? shipping.toJSON() : null,
+    });
+  }
+
   return {
-    orders,
+    orders: ordersWithDetails,
     pagination: {
       currentPage: page,
       totalPages: Math.ceil(count / limit),
@@ -266,9 +353,9 @@ export const cancelOrder = async (orderId: number, userId: number) => {
   const transaction = await sequelize.transaction();
 
   try {
+    // Get order without include to avoid association issues
     const order = await Order.findOne({
       where: { id: orderId, userId },
-      include: [{ model: OrderItem, as: "items" }],
       transaction,
     });
 
@@ -280,16 +367,20 @@ export const cancelOrder = async (orderId: number, userId: number) => {
       throw new Error("Order cannot be cancelled");
     }
 
+    // Get order items separately
+    const orderItems = await OrderItem.findAll({
+      where: { orderId: order.id },
+      transaction,
+    });
+
     // Release reserved stock
-    if (order.items) {
-      for (const item of order.items) {
-        const inventory = await Inventory.findOne({
-          where: { productId: item.productId },
-          transaction,
-        });
-        if (inventory) {
-          await inventory.releaseStock(item.quantity);
-        }
+    for (const item of orderItems) {
+      const inventory = await Inventory.findOne({
+        where: { productId: item.productId },
+        transaction,
+      });
+      if (inventory) {
+        await inventory.releaseStock(item.quantity);
       }
     }
 
@@ -337,24 +428,51 @@ export const getOrdersByStatus = async (
     whereClause.userId = userId;
   }
 
+  // Get orders without include to avoid association issues
   const { count, rows: orders } = await Order.findAndCountAll({
     where: whereClause,
-    include: [
-      {
-        model: OrderItem,
-        as: "items",
-        include: [{ model: Product, as: "product" }],
-      },
-      { model: Address, as: "shippingAddress" },
-      { model: Shipping, as: "shipping" },
-    ],
     order: [["createdAt", "DESC"]],
     limit,
     offset,
   });
 
+  // Fetch related data separately for each order
+  const ordersWithDetails = [];
+  for (const order of orders) {
+    // Get order items
+    const orderItems = await OrderItem.findAll({
+      where: { orderId: order.id },
+    });
+
+    // Get products for each order item
+    const itemsWithProducts = [];
+    for (const item of orderItems) {
+      const product = await Product.findByPk(item.productId);
+      itemsWithProducts.push({
+        ...item.toJSON(),
+        product: product ? product.toJSON() : null,
+      });
+    }
+
+    // Get shipping address
+    const shippingAddress = await Address.findByPk(order.shippingAddressId);
+
+    // Get shipping info
+    const shipping = await Shipping.findOne({
+      where: { orderId: order.id },
+    });
+
+    // Combine all data
+    ordersWithDetails.push({
+      ...order.toJSON(),
+      items: itemsWithProducts,
+      shippingAddress: shippingAddress ? shippingAddress.toJSON() : null,
+      shipping: shipping ? shipping.toJSON() : null,
+    });
+  }
+
   return {
-    orders,
+    orders: ordersWithDetails,
     pagination: {
       currentPage: page,
       totalPages: Math.ceil(count / limit),

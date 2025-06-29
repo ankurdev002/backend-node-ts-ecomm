@@ -61,15 +61,18 @@ export const processPayment = async (
   const transaction = await sequelize.transaction();
 
   try {
+    // Get payment without include to avoid association issues
     const payment = await Payment.findOne({
       where: { id: paymentId },
-      include: [{ model: Order, as: "order" }],
       transaction,
     });
 
     if (!payment) {
       throw new Error("Payment not found");
     }
+
+    // Get order separately
+    const order = await Order.findByPk(payment.orderId, { transaction });
 
     // Update payment with gateway response
     payment.gatewayTransactionId = gatewayResponse.transactionId;
@@ -78,27 +81,27 @@ export const processPayment = async (
     await payment.save({ transaction });
 
     // Update order payment status
-    if (payment.order) {
-      payment.order.paymentStatus = payment.status as any;
+    if (order) {
+      order.paymentStatus = payment.status as any;
       if (payment.status === "completed") {
-        payment.order.status = "confirmed";
+        order.status = "confirmed";
       }
-      await payment.order.save({ transaction });
+      await order.save({ transaction });
 
       // Create notification
       await Notification.create(
         {
-          userId: payment.order.userId,
+          userId: order.userId,
           title:
             payment.status === "completed"
               ? "Payment Successful"
               : "Payment Failed",
           message:
             payment.status === "completed"
-              ? `Payment for order ${payment.order.orderNumber} was successful.`
-              : `Payment for order ${payment.order.orderNumber} failed. Please try again.`,
+              ? `Payment for order ${order.orderNumber} was successful.`
+              : `Payment for order ${order.orderNumber} failed. Please try again.`,
           type: "payment",
-          relatedId: payment.order.id,
+          relatedId: order.id,
           relatedType: "order",
         },
         { transaction }
@@ -106,7 +109,14 @@ export const processPayment = async (
     }
 
     await transaction.commit();
-    return payment;
+
+    // Return payment with order data manually attached
+    const paymentWithOrder = {
+      ...payment.toJSON(),
+      order: order ? order.toJSON() : null,
+    };
+
+    return paymentWithOrder;
   } catch (error) {
     await transaction.rollback();
     throw error;
@@ -121,9 +131,9 @@ export const refundPayment = async (
   const transaction = await sequelize.transaction();
 
   try {
+    // Get payment without include to avoid association issues
     const payment = await Payment.findOne({
       where: { id: paymentId },
-      include: [{ model: Order, as: "order" }],
       transaction,
     });
 
@@ -139,6 +149,9 @@ export const refundPayment = async (
       throw new Error("Refund amount exceeds available amount");
     }
 
+    // Get order separately
+    const order = await Order.findByPk(payment.orderId, { transaction });
+
     // Update payment
     payment.refundAmount += refundAmount;
     payment.refundReason = refundReason;
@@ -148,19 +161,19 @@ export const refundPayment = async (
     await payment.save({ transaction });
 
     // Update order status if fully refunded
-    if (payment.order && payment.refundAmount >= payment.amount) {
-      payment.order.status = "refunded";
-      payment.order.paymentStatus = "refunded";
-      await payment.order.save({ transaction });
+    if (order && payment.refundAmount >= payment.amount) {
+      order.status = "refunded";
+      order.paymentStatus = "refunded";
+      await order.save({ transaction });
 
       // Create notification
       await Notification.create(
         {
-          userId: payment.order.userId,
+          userId: order.userId,
           title: "Refund Processed",
-          message: `Refund of $${refundAmount} for order ${payment.order.orderNumber} has been processed.`,
+          message: `Refund of $${refundAmount} for order ${order.orderNumber} has been processed.`,
           type: "payment",
-          relatedId: payment.order.id,
+          relatedId: order.id,
           relatedType: "order",
         },
         { transaction }
@@ -168,7 +181,14 @@ export const refundPayment = async (
     }
 
     await transaction.commit();
-    return payment;
+
+    // Return payment with order data manually attached
+    const paymentWithOrder = {
+      ...payment.toJSON(),
+      order: order ? order.toJSON() : null,
+    };
+
+    return paymentWithOrder;
   } catch (error) {
     await transaction.rollback();
     throw error;
@@ -185,16 +205,25 @@ export const getPaymentsByOrder = async (orderId: number) => {
 };
 
 export const getPaymentById = async (paymentId: number) => {
+  // Get payment without include to avoid association issues
   const payment = await Payment.findOne({
     where: { id: paymentId },
-    include: [{ model: Order, as: "order" }],
   });
 
   if (!payment) {
     throw new Error("Payment not found");
   }
 
-  return payment;
+  // Get order separately
+  const order = await Order.findByPk(payment.orderId);
+
+  // Return payment with order data manually attached
+  const paymentWithOrder = {
+    ...payment.toJSON(),
+    order: order ? order.toJSON() : null,
+  };
+
+  return paymentWithOrder;
 };
 
 // Mock payment gateway integration
