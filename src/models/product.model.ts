@@ -115,7 +115,12 @@ Product.init(
     userId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: 1,
+      references: {
+        model: "users",
+        key: "id",
+      },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
     createdAt: {
       type: DataTypes.DATE,

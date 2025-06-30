@@ -1,10 +1,6 @@
 import { Request, Response } from "express";
 import { AuthenticatedRequest } from "../types/common.type";
-import Review from "../models/review.model";
-import { Product } from "../models/product.model";
-import Order from "../models/order.model";
-import OrderItem from "../models/orderItem.model";
-import User from "../models/user.model";
+import { Review, Product, Order, OrderItem, User } from "../models/index";
 import sequelize from "../config/db";
 
 export const createReview = async (
@@ -13,7 +9,7 @@ export const createReview = async (
 ): Promise<any> => {
   try {
     const userId = req.user?.id;
-    const { productId, orderId, rating, comment, title } = req.body;
+    const { productId, rating, comment, title } = req.body;
 
     if (!userId) {
       return res.status(401).json({
@@ -22,7 +18,7 @@ export const createReview = async (
       });
     }
 
-    // Verify that user has ordered this product
+    // Find any delivered order containing this product for this user
     const orderItem = await OrderItem.findOne({
       where: { productId },
       include: [
@@ -31,7 +27,6 @@ export const createReview = async (
           as: "order",
           where: {
             userId,
-            id: orderId,
             status: "delivered",
           },
         },
@@ -45,7 +40,11 @@ export const createReview = async (
       });
     }
 
-    // Check if user has already reviewed this product
+    // Get the orderId from the found order
+    const order = orderItem.get("order") as any;
+    const orderId = order?.id;
+
+    // Check if user has already reviewed this product for this order
     const existingReview = await Review.findOne({
       where: { userId, productId, orderId },
     });
@@ -103,7 +102,7 @@ export const getProductReviews = async (
         {
           model: User,
           as: "user",
-          attributes: ["id", "firstName", "lastName", "avatar"],
+          attributes: ["id", "name", "avatar"],
         },
       ],
       limit: parseInt(limit as string),
