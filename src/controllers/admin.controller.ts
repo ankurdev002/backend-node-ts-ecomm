@@ -101,13 +101,15 @@ export const getAllUsers = async (
     }
     if (search) {
       whereClause[Op.or] = [
-        { firstName: { [Op.iLike]: `%${search}%` } },
-        { lastName: { [Op.iLike]: `%${search}%` } },
+        { name: { [Op.iLike]: `%${search}%` } },
         { email: { [Op.iLike]: `%${search}%` } },
       ];
     }
 
     const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
+
+    // First, let's check total users in database
+    const totalUsersInDb = await User.count();
 
     const { count, rows: users } = await User.findAndCountAll({
       where: whereClause,
@@ -129,12 +131,18 @@ export const getAllUsers = async (
           hasNext: offset + parseInt(limit as string) < count,
           hasPrev: parseInt(page as string) > 1,
         },
+        debug: {
+          totalUsersInDatabase: totalUsersInDb,
+          appliedFilters: whereClause,
+          queryParams: req.query,
+        },
       },
     });
   } catch (error: any) {
     res.status(500).json({
       success: false,
       message: error.message,
+      error: error.stack,
     });
   }
 };
@@ -175,12 +183,12 @@ export const getAllOrders = async (
         {
           model: User,
           as: "customer",
-          attributes: ["id", "firstName", "lastName", "email"],
+          attributes: ["id", "name", "email"],
         },
         {
           model: User,
           as: "vendor",
-          attributes: ["id", "firstName", "lastName"],
+          attributes: ["id", "name"],
         },
       ],
       limit: parseInt(limit as string),
@@ -265,11 +273,12 @@ export const getRevenuereport = async (
       });
     }
 
-    let dateFormat = "%Y-%m-%d";
+    // PostgreSQL date format patterns (not MySQL)
+    let dateFormat = "YYYY-MM-DD";
     if (groupBy === "month") {
-      dateFormat = "%Y-%m";
+      dateFormat = "YYYY-MM";
     } else if (groupBy === "year") {
-      dateFormat = "%Y";
+      dateFormat = "YYYY";
     }
 
     const whereClause: any = { status: "completed" };
@@ -286,8 +295,9 @@ export const getRevenuereport = async (
       where: whereClause,
       attributes: [
         [
+          // Using PostgreSQL TO_CHAR function instead of MySQL DATE_FORMAT
           Payment.sequelize!.fn(
-            "DATE_FORMAT",
+            "TO_CHAR",
             Payment.sequelize!.col("createdAt"),
             dateFormat
           ),
@@ -304,7 +314,7 @@ export const getRevenuereport = async (
       ],
       group: [
         Payment.sequelize!.fn(
-          "DATE_FORMAT",
+          "TO_CHAR",
           Payment.sequelize!.col("createdAt"),
           dateFormat
         ),
@@ -312,7 +322,7 @@ export const getRevenuereport = async (
       order: [
         [
           Payment.sequelize!.fn(
-            "DATE_FORMAT",
+            "TO_CHAR",
             Payment.sequelize!.col("createdAt"),
             dateFormat
           ),
