@@ -13,6 +13,10 @@ import { validate } from "../middleware/validate.middleware";
 import {
   createProductSchema,
   updateProductSchema,
+  getProductByIdSchema,
+  getAllProductsSchema,
+  getProductsByRoleAndIdSchema,
+  deleteProductSchema,
 } from "../schema/product.schema";
 import { ENDPOINTS } from "../constants/endpoint";
 
@@ -26,20 +30,30 @@ router.post(
 ); // Create a new product
 router.get(
   ENDPOINTS.ADMIN_ROUTE.ALL_PRODUCTS,
+  validate(getAllProductsSchema),
   paginate(Product),
   getAllProducts
 ); // Get all products for admin only
 router.get(
   ENDPOINTS.ADMIN_ROUTE.PRODUCT_BY_ID_AND_ROLES,
+  validate(getProductsByRoleAndIdSchema),
   paginate(Product),
   getAllProductsByRolesAndId
 ); // Get all products based on roles and id
-router.get(ENDPOINTS.ADMIN_ROUTE.PRODUCT_BY_ID, getProductById); // Get a product by ID
+router.get(
+  ENDPOINTS.ADMIN_ROUTE.PRODUCT_BY_ID,
+  validate(getProductByIdSchema),
+  getProductById
+); // Get a product by ID
 router.put(
   ENDPOINTS.ADMIN_ROUTE.UPDATE_PRODUCT,
   validate(updateProductSchema),
   updateProduct
 ); // Update a product by ID
-router.delete(ENDPOINTS.ADMIN_ROUTE.DELETE_PRODUCT, deleteProduct); // Delete a product by ID
+router.delete(
+  ENDPOINTS.ADMIN_ROUTE.DELETE_PRODUCT,
+  validate(deleteProductSchema),
+  deleteProduct
+); // Delete a product by ID
 
 export default router;

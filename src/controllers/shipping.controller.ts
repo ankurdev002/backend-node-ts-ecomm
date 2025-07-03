@@ -228,7 +228,7 @@ export const getDeliveryAssignments = async (
       });
     }
 
-    if (userType !== USER_ROLES.DELIVERY) {
+    if (userType !== USER_ROLES.DELIVERY && userType !== USER_ROLES.ADMIN) {
       return res.status(403).json({
         success: false,
         message: "Access denied: Delivery personnel only",

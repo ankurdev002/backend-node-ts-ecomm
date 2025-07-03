@@ -24,7 +24,7 @@ const attributesSchema = z.object({
   power: z.string().optional(),
 });
 
-// Shared base schema
+// Shared base schema for product data
 const baseProductSchema = z.object({
   name: z.string().min(1, "Name is required"),
   productCategoryId: z.number().int(),
@@ -41,20 +41,73 @@ const baseProductSchema = z.object({
 });
 
 // Create schema — all fields + userId required
-export const createProductSchema = baseProductSchema.extend({
-  userId: z.number().int().min(1, "userId is required"),
+export const createProductSchema = z.object({
+  body: baseProductSchema.extend({
+    userId: z.number().int().min(1, "userId is required"),
+  }),
 });
 
 // Update: all optional, but at least one field must be present
-export const updateProductSchema = baseProductSchema
-  .partial()
-  .extend({
-    userId: z.number().int().min(1, "userId is required"),
-  })
-  .refine((data) => Object.keys(data).length > 0, {
-    message: "At least one field must be provided to update the product.",
-  });
+export const updateProductSchema = z.object({
+  params: z.object({
+    id: z.string().regex(/^\d+$/, "Product ID must be a number"),
+  }),
+  body: baseProductSchema
+    .partial()
+    .extend({
+      userId: z.number().int().min(1, "userId is required"),
+    })
+    .refine((data) => Object.keys(data).length > 0, {
+      message: "At least one field must be provided to update the product.",
+    }),
+});
+
+// Get product by ID schema
+export const getProductByIdSchema = z.object({
+  params: z.object({
+    id: z.string().regex(/^\d+$/, "Product ID must be a number"),
+  }),
+});
+
+// Get all products schema
+export const getAllProductsSchema = z.object({
+  query: z.object({
+    page: z.string().regex(/^\d+$/, "Page must be a number").optional(),
+    limit: z.string().regex(/^\d+$/, "Limit must be a number").optional(),
+    search: z.string().optional(),
+    category: z.string().optional(),
+    status: z.enum(["active", "inactive"]).optional(),
+    sortBy: z.enum(["name", "price", "createdAt"]).optional(),
+    sortOrder: z.enum(["ASC", "DESC"]).optional(),
+  }),
+});
+
+// Get products by role and ID schema
+export const getProductsByRoleAndIdSchema = z.object({
+  query: z.object({
+    page: z.string().regex(/^\d+$/, "Page must be a number").optional(),
+    limit: z.string().regex(/^\d+$/, "Limit must be a number").optional(),
+    search: z.string().optional(),
+    category: z.string().optional(),
+    status: z.enum(["active", "inactive"]).optional(),
+    sortBy: z.enum(["name", "price", "createdAt"]).optional(),
+    sortOrder: z.enum(["ASC", "DESC"]).optional(),
+  }),
+});
+
+// Delete product schema
+export const deleteProductSchema = z.object({
+  params: z.object({
+    id: z.string().regex(/^\d+$/, "Product ID must be a number"),
+  }),
+});
 
 // Type inference (optional)
 export type CreateProductDTO = z.infer<typeof createProductSchema>;
 export type UpdateProductDTO = z.infer<typeof updateProductSchema>;
+export type GetProductByIdDTO = z.infer<typeof getProductByIdSchema>;
+export type GetAllProductsDTO = z.infer<typeof getAllProductsSchema>;
+export type GetProductsByRoleAndIdDTO = z.infer<
+  typeof getProductsByRoleAndIdSchema
+>;
+export type DeleteProductDTO = z.infer<typeof deleteProductSchema>;

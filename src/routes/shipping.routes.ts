@@ -25,7 +25,11 @@ router.put(
 // @route GET /api/shipping/order/:orderId
 // @desc Get shipping information for an order
 // @access Private
-router.get(ENDPOINTS.SHIPPING_ROUTE.GET_SHIPPING_INFO, authenticateUser, getShippingInfo);
+router.get(
+  ENDPOINTS.SHIPPING_ROUTE.GET_SHIPPING_INFO,
+  authenticateUser,
+  getShippingInfo
+);
 
 // @route GET /api/shipping/track/:trackingNumber
 // @desc Track shipment by tracking number
@@ -38,7 +42,7 @@ router.get(ENDPOINTS.SHIPPING_ROUTE.TRACK_SHIPMENT, trackShipment);
 router.get(
   ENDPOINTS.SHIPPING_ROUTE.GET_DELIVERY_ASSIGNMENTS,
   authenticateUser,
-  authorizeRole([USER_ROLES.DELIVERY]),
+  authorizeRole([USER_ROLES.ADMIN, USER_ROLES.DELIVERY]),
   getDeliveryAssignments
 );
 
