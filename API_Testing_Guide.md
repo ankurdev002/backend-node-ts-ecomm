@@ -2,7 +2,7 @@
 
 ## 📋 Overview
 
-This guide provides comprehensive testing instructions for all 89+ API endpoints in the e-commerce backend system based on the actual implemented codebase.
+This guide provides comprehensive testing instructions for all 108 API endpoints in the e-commerce backend system based on the actual implemented codebase.
 
 ## 🔧 Setup Instructions
 
@@ -115,6 +115,35 @@ Content-Type: application/json
 | DELETE | `/cart/:cartItemId` | Remove cart item | ✅            |
 | DELETE | `/cart`             | Clear cart       | ✅            |
 | GET    | `/cart/validate`    | Validate cart    | ✅            |
+
+### 💝 Wishlist Management
+
+| Method | Endpoint                                 | Description                  | Auth Required |
+| ------ | ---------------------------------------- | ---------------------------- | ------------- |
+| POST   | `/wishlist/add`                          | Add item to wishlist         | ✅            |
+| GET    | `/wishlist`                              | Get user wishlist            | ✅            |
+| GET    | `/wishlist/count`                        | Get wishlist item count      | ✅            |
+| GET    | `/wishlist/check/:productId`             | Check if product in wishlist | ✅            |
+| DELETE | `/wishlist/:wishlistItemId`              | Remove item from wishlist    | ✅            |
+| DELETE | `/wishlist/product/:productId`           | Remove item by product ID    | ✅            |
+| POST   | `/wishlist/:wishlistItemId/move-to-cart` | Move item to cart            | ✅            |
+| DELETE | `/wishlist`                              | Clear wishlist               | ✅            |
+
+### 🎟️ Coupon Management
+
+| Method | Endpoint                   | Description             | Auth Required |
+| ------ | -------------------------- | ----------------------- | ------------- |
+| GET    | `/coupons/code/:code`      | Get coupon info         | ❌            |
+| POST   | `/coupons/validate`        | Validate coupon code    | ✅            |
+| POST   | `/coupons/apply`           | Apply coupon to order   | ✅            |
+| GET    | `/coupons/available`       | Get available coupons   | ✅            |
+| GET    | `/coupons/history`         | Get user coupon history | ✅            |
+| POST   | `/coupons`                 | Create coupon           | ✅ (Admin)    |
+| GET    | `/coupons`                 | Get all coupons         | ✅ (Admin)    |
+| GET    | `/coupons/:couponId`       | Get coupon by ID        | ✅ (Admin)    |
+| PUT    | `/coupons/:couponId`       | Update coupon           | ✅ (Admin)    |
+| DELETE | `/coupons/:couponId`       | Delete coupon           | ✅ (Admin)    |
+| GET    | `/coupons/:couponId/stats` | Get coupon statistics   | ✅ (Admin)    |
 
 ### 📍 Address Management
 
@@ -394,6 +423,64 @@ Content-Type: application/json
 }
 ```
 
+### Add to Wishlist
+
+```json
+{
+  "productId": 1
+}
+```
+
+### Validate Coupon
+
+```json
+{
+  "code": "SAVE10",
+  "orderAmount": 100.0,
+  "productIds": [1, 2, 3]
+}
+```
+
+### Apply Coupon
+
+```json
+{
+  "code": "SAVE10",
+  "orderId": 1
+}
+```
+
+### Create Coupon (Admin)
+
+```json
+{
+  "code": "SAVE20",
+  "name": "20% Off Sale",
+  "description": "Get 20% off on all electronics",
+  "type": "percentage",
+  "value": 20,
+  "minOrderAmount": 50.0,
+  "maxDiscountAmount": 100.0,
+  "usageLimit": 1000,
+  "userLimit": 1,
+  "validFrom": "2024-01-01T00:00:00Z",
+  "validUntil": "2024-12-31T23:59:59Z",
+  "applicableProducts": [1, 2, 3],
+  "applicableCategories": [1, 2]
+}
+```
+
+### Update Coupon (Admin)
+
+```json
+{
+  "name": "Updated 20% Off Sale",
+  "description": "Updated description",
+  "value": 25,
+  "isActive": true
+}
+```
+
 ## 🔍 Testing Scenarios
 
 ### 1. Complete User Journey
@@ -402,11 +489,13 @@ Content-Type: application/json
 2. Login and get token
 3. Create shipping address
 4. Browse products
-5. Add products to cart
-6. Create order from cart
-7. Make payment
-8. Track order status
-9. Leave product review
+5. Add products to wishlist
+6. Add products to cart from wishlist
+7. Apply coupon to order
+8. Create order from cart
+9. Make payment
+10. Track order status
+11. Leave product review
 
 ### 2. Vendor Workflow
 
@@ -421,9 +510,11 @@ Content-Type: application/json
 
 1. Login as admin
 2. View dashboard statistics
-3. Manage users
-4. Oversee all orders
-5. Handle refunds
+3. Create and manage coupons
+4. Monitor coupon usage statistics
+5. Manage users
+6. Oversee all orders
+7. Handle refunds
 
 ### 4. Delivery Process
 
@@ -488,4 +579,4 @@ Set these in your Postman environment:
 - Validate input sanitization
 - Test rate limiting functionality
 
-This comprehensive guide covers all 89+ endpoints in your e-commerce backend system. Import the Postman collection and follow this guide to thoroughly test your API across all user roles and functionality!
+This comprehensive guide covers all 108 endpoints in your e-commerce backend system. Import the Postman collection and follow this guide to thoroughly test your API across all user roles and functionality!

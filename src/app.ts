@@ -15,6 +15,8 @@ import adminRoutes from "./routes/admin.routes";
 import vendorRoutes from "./routes/vendor.routes";
 import deliveryRoutes from "./routes/delivery.routes";
 import inventoryRoutes from "./routes/inventory.routes";
+import wishlistRoutes from "./routes/wishlist.routes";
+import couponRoutes from "./routes/coupon.routes";
 import { authenticateUser } from "./middleware/auth.middleware";
 import { authorizeRole } from "./middleware/role.middleware";
 import { USER_ROLES } from "./constants/user_roles";
@@ -35,6 +37,8 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/addresses", addressRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/coupons", couponRoutes);
 
 // Admin routes
 app.use("/api/admin", adminRoutes);
