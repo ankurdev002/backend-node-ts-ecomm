@@ -2,6 +2,16 @@ import Payment from "../models/payment.model";
 import Order from "../models/order.model";
 import Notification from "../models/notification.model";
 import sequelize from "../config/db";
+import Razorpay from "razorpay";
+import crypto from "crypto";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID!,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 
 interface CreatePaymentData {
   orderId: number;
@@ -263,3 +273,79 @@ export const processPayPalPayment = async (
     message: success ? "Payment successful" : "Payment failed",
   };
 };
+
+class PaymentService {
+  // Create a new order
+  async createOrder(amount: number, currency: string = "INR", receipt: string) {
+    try {
+      const order = await razorpay.orders.create({
+        amount: amount * 100, // Convert to smallest currency unit (paise)
+        currency,
+        receipt,
+      });
+      return order;
+    } catch (error) {
+      throw new Error(`Error creating order: ${error}`);
+    }
+  }
+
+  // Verify payment signature
+  verifyPaymentSignature(
+    razorpay_order_id: string,
+    razorpay_payment_id: string,
+    razorpay_signature: string
+  ) {
+    try {
+      const sign = razorpay_order_id + "|" + razorpay_payment_id;
+      const expectedSign = crypto
+        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
+        .update(sign.toString())
+        .digest("hex");
+
+      return expectedSign === razorpay_signature;
+    } catch (error) {
+      throw new Error(`Error verifying payment: ${error}`);
+    }
+  }
+
+  // Fetch payment details
+  async fetchPaymentDetails(paymentId: string) {
+    try {
+      const payment = await razorpay.payments.fetch(paymentId);
+      return payment;
+    } catch (error) {
+      throw new Error(`Error fetching payment: ${error}`);
+    }
+  }
+
+  // Refund payment
+  async refundPayment(paymentId: string, amount?: number) {
+    try {
+      const refund = await razorpay.payments.refund(paymentId, {
+        amount: amount ? amount * 100 : undefined, // If amount not specified, full refund
+      });
+      return refund;
+    } catch (error) {
+      throw new Error(`Error refunding payment: ${error}`);
+    }
+  }
+
+  // Fetch all payments
+  async fetchAllPayments(
+    options: { from?: Date; to?: Date; skip?: number; count?: number } = {}
+  ) {
+    try {
+      const { from, to, ...rest } = options;
+      const payments = await razorpay.payments.all({
+        ...rest,
+        from: from?.getTime(),
+        to: to?.getTime(),
+      });
+      return payments;
+    } catch (error) {
+      throw new Error(`Error fetching payments: ${error}`);
+    }
+  }
+}
+
+export default new PaymentService();

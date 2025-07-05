@@ -1,24 +1,23 @@
 import { Router } from "express";
+import { ENDPOINTS } from "../constants/endpoint";
 import {
+  cancelUserOrder,
   createOrder,
   getOrder,
   getOrders,
-  updateOrder,
-  cancelUserOrder,
   getOrdersByOrderStatus,
+  updateOrder,
 } from "../controllers/order.controller";
 import { authenticateUser } from "../middleware/auth.middleware";
 import { validate } from "../middleware/validate.middleware";
 import {
+  cancelOrderSchema,
   createOrderSchema,
   orderParamsSchema,
-  orderStatusParamsSchema,
   orderQuerySchema,
+  orderStatusParamsSchema,
   updateOrderStatusSchema,
-  cancelOrderSchema,
 } from "../schema/order.schema";
-import paginate from "../middleware/pagination.middleware";
-import { ENDPOINTS } from "../constants/endpoint";
 
 const router = Router();
 

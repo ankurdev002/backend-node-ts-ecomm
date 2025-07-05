@@ -1,58 +1,59 @@
-import { Router } from "express";
-import {
-  initiatePayment,
-  handlePaymentCallback,
-  processStripeCallback,
-  processPayPalCallback,
-  refundOrderPayment,
-  getOrderPayments,
-  getPayment,
-} from "../controllers/payment.controller";
+import express from "express";
+import { USER_ROLES } from "../constants/user_roles";
+import PaymentController from "../controllers/payment.controller";
 import { authenticateUser } from "../middleware/auth.middleware";
 import { authorizeRole } from "../middleware/role.middleware";
-import { USER_ROLES } from "../constants/user_roles";
-import { ENDPOINTS } from "../constants/endpoint";
+import { validate } from "../middleware/validate.middleware";
+import {
+  createOrderSchema,
+  getAllPaymentsSchema,
+  paymentIdParamSchema,
+  refundPaymentSchema,
+  verifyPaymentSchema,
+} from "../schema/payment.schema";
 
-const router = Router();
+const router = express.Router();
+const controller = PaymentController;
 
-// @route POST /api/payments/initiate
-// @desc Initiate payment for an order
-// @access Private
-router.post(ENDPOINTS.PAYMENT_ROUTE.INITIATE_PAYMENT, authenticateUser, initiatePayment);
-
-// @route POST /api/payments/:paymentId/callback
-// @desc Handle payment gateway callback
-// @access Public (called by payment gateways)
-router.post(ENDPOINTS.PAYMENT_ROUTE.PAYMENT_CALLBACK, handlePaymentCallback);
-
-// @route POST /api/payments/:paymentId/stripe/callback
-// @desc Handle Stripe payment callback
-// @access Public
-router.post(ENDPOINTS.PAYMENT_ROUTE.STRIPE_CALLBACK, processStripeCallback);
-
-// @route POST /api/payments/:paymentId/paypal/callback
-// @desc Handle PayPal payment callback
-// @access Public
-router.post(ENDPOINTS.PAYMENT_ROUTE.PAYPAL_CALLBACK, processPayPalCallback);
-
-// @route POST /api/payments/:paymentId/refund
-// @desc Refund payment (Admin only)
-// @access Private (Admin)
+// Create payment order
 router.post(
-  ENDPOINTS.PAYMENT_ROUTE.REFUND_PAYMENT,
+  "/create-order",
   authenticateUser,
-  authorizeRole([USER_ROLES.ADMIN]),
-  refundOrderPayment
+  validate(createOrderSchema),
+  controller.createOrder.bind(controller)
 );
 
-// @route GET /api/payments/order/:orderId
-// @desc Get all payments for an order
-// @access Private
-router.get(ENDPOINTS.PAYMENT_ROUTE.GET_ORDER_PAYMENTS, authenticateUser, getOrderPayments);
+// Verify payment
+router.post(
+  "/verify",
+  validate(verifyPaymentSchema),
+  controller.verifyPayment.bind(controller)
+);
 
-// @route GET /api/payments/:paymentId
-// @desc Get payment details
-// @access Private
-router.get(ENDPOINTS.PAYMENT_ROUTE.GET_PAYMENT, authenticateUser, getPayment);
+// Get payment details
+router.get(
+  "/:paymentId",
+  authenticateUser,
+  validate(paymentIdParamSchema),
+  controller.getPaymentDetails.bind(controller)
+);
+
+// Refund payment (Admin only)
+router.post(
+  "/:paymentId/refund",
+  authenticateUser,
+  authorizeRole([USER_ROLES.ADMIN]),
+  validate(refundPaymentSchema),
+  controller.refundPayment.bind(controller)
+);
+
+// Get all payments (Admin only)
+router.get(
+  "/",
+  authenticateUser,
+  authorizeRole([USER_ROLES.ADMIN]),
+  validate(getAllPaymentsSchema),
+  controller.getAllPayments.bind(controller)
+);
 
 export default router;

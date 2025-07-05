@@ -1,150 +1,47 @@
 import { z } from "zod";
 
-// Schema for initiating payment
-export const initiatePaymentSchema = z.object({
+// Route validation schemas
+export const createOrderSchema = z.object({
   body: z.object({
-    orderId: z.number().int().positive("Order ID is required"),
-    paymentMethod: z.enum(
-      [
-        "credit_card",
-        "debit_card",
-        "paypal",
-        "stripe",
-        "cash_on_delivery",
-        "bank_transfer",
-      ],
-      {
-        required_error: "Payment method is required",
-        invalid_type_error: "Invalid payment method",
-      }
-    ),
-    paymentGateway: z
-      .enum(["stripe", "paypal", "razorpay", "square"], {
-        invalid_type_error: "Invalid payment gateway",
-      })
-      .optional(),
-    amount: z.number().positive("Amount must be positive"),
-    currency: z
-      .string()
-      .length(3, "Currency must be a 3-letter code")
-      .default("USD"),
+    amount: z.number().min(1),
+    currency: z.string().length(3).optional(),
   }),
 });
 
-// Schema for payment callback
-export const paymentCallbackSchema = z.object({
+export const verifyPaymentSchema = z.object({
+  body: z.object({
+    razorpay_order_id: z.string(),
+    razorpay_payment_id: z.string(),
+    razorpay_signature: z.string(),
+  }),
+});
+
+export const paymentIdParamSchema = z.object({
   params: z.object({
-    paymentId: z.string().regex(/^\d+$/, "Payment ID must be a number"),
-  }),
-  body: z.object({
-    status: z.enum(["pending", "completed", "failed", "cancelled"], {
-      required_error: "Payment status is required",
-      invalid_type_error: "Invalid payment status",
-    }),
-    transactionId: z.string().optional(),
-    gatewayTransactionId: z.string().optional(),
-    gatewayResponse: z.record(z.any()).optional(),
-    failureReason: z.string().optional(),
+    paymentId: z.string(),
   }),
 });
 
-// Schema for Stripe payment callback
-export const stripeCallbackSchema = z.object({
-  params: z.object({
-    paymentId: z.string().regex(/^\d+$/, "Payment ID must be a number"),
-  }),
-  body: z.object({
-    paymentIntentId: z.string().min(1, "Payment intent ID is required"),
-    amount: z.number().positive("Amount must be positive"),
-    status: z.enum(["succeeded", "failed", "cancelled"]).optional(),
-    metadata: z.record(z.any()).optional(),
-  }),
-});
-
-// Schema for PayPal payment callback
-export const paypalCallbackSchema = z.object({
-  params: z.object({
-    paymentId: z.string().regex(/^\d+$/, "Payment ID must be a number"),
-  }),
-  body: z.object({
-    paypalOrderId: z.string().min(1, "PayPal order ID is required"),
-    amount: z.number().positive("Amount must be positive"),
-    status: z.enum(["COMPLETED", "FAILED", "CANCELLED"]).optional(),
-    payerId: z.string().optional(),
-    metadata: z.record(z.any()).optional(),
-  }),
-});
-
-// Schema for payment refund
 export const refundPaymentSchema = z.object({
   params: z.object({
-    paymentId: z.string().regex(/^\d+$/, "Payment ID must be a number"),
+    paymentId: z.string(),
   }),
   body: z.object({
-    refundAmount: z.number().positive("Refund amount must be positive"),
-    refundReason: z
-      .string()
-      .min(1, "Refund reason is required")
-      .max(500, "Refund reason must be less than 500 characters"),
+    amount: z.number().min(1).optional(),
   }),
 });
 
-// Schema for payment parameters
-export const paymentParamsSchema = z.object({
-  params: z.object({
-    paymentId: z.string().regex(/^\d+$/, "Payment ID must be a number"),
-  }),
-});
-
-// Schema for order payments
-export const orderPaymentsSchema = z.object({
-  params: z.object({
-    orderId: z.string().regex(/^\d+$/, "Order ID must be a number"),
-  }),
-});
-
-// Schema for payment query filters
-export const paymentQuerySchema = z.object({
+export const getAllPaymentsSchema = z.object({
   query: z.object({
-    status: z
-      .enum(["pending", "completed", "failed", "cancelled", "refunded"])
-      .optional(),
-    paymentMethod: z
-      .enum([
-        "credit_card",
-        "debit_card",
-        "paypal",
-        "stripe",
-        "cash_on_delivery",
-        "bank_transfer",
-      ])
-      .optional(),
-    startDate: z
+    from: z.string().datetime().optional(),
+    to: z.string().datetime().optional(),
+    skip: z
       .string()
-      .datetime({ message: "Invalid start date format" })
+      .regex(/^[0-9]+$/)
       .optional(),
-    endDate: z
+    count: z
       .string()
-      .datetime({ message: "Invalid end date format" })
-      .optional(),
-    page: z
-      .string()
-      .regex(/^\d+$/, "Page must be a number")
-      .transform(Number)
-      .optional(),
-    limit: z
-      .string()
-      .regex(/^\d+$/, "Limit must be a number")
-      .transform(Number)
+      .regex(/^[0-9]+$/)
       .optional(),
   }),
 });
-
-export type InitiatePaymentInput = z.infer<typeof initiatePaymentSchema>;
-export type PaymentCallbackInput = z.infer<typeof paymentCallbackSchema>;
-export type StripeCallbackInput = z.infer<typeof stripeCallbackSchema>;
-export type PaypalCallbackInput = z.infer<typeof paypalCallbackSchema>;
-export type RefundPaymentInput = z.infer<typeof refundPaymentSchema>;
-export type PaymentParamsInput = z.infer<typeof paymentParamsSchema>;
-export type OrderPaymentsInput = z.infer<typeof orderPaymentsSchema>;
-export type PaymentQueryInput = z.infer<typeof paymentQuerySchema>;
