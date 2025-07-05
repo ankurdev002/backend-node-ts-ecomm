@@ -170,15 +170,13 @@ Content-Type: application/json
 
 ### 💳 Payment Processing
 
-| Method | Endpoint                               | Description         | Auth Required |
-| ------ | -------------------------------------- | ------------------- | ------------- |
-| POST   | `/payments/initiate`                   | Initiate payment    | ✅            |
-| POST   | `/payments/:paymentId/callback`        | Payment callback    | ❌            |
-| POST   | `/payments/:paymentId/stripe/callback` | Stripe callback     | ❌            |
-| POST   | `/payments/:paymentId/paypal/callback` | PayPal callback     | ❌            |
-| POST   | `/payments/:paymentId/refund`          | Refund payment      | ✅ (Admin)    |
-| GET    | `/payments/order/:orderId`             | Get order payments  | ✅            |
-| GET    | `/payments/:paymentId`                 | Get payment details | ✅            |
+| Method | Endpoint                      | Description          | Auth Required |
+| ------ | ----------------------------- | -------------------- | ------------- |
+| POST   | `/payments/create-order`      | Create payment order | ✅            |
+| POST   | `/payments/verify-payment`    | Verify payment       | ❌            |
+| GET    | `/payments/:paymentId`        | Get payment details  | ✅            |
+| POST   | `/payments/:paymentId/refund` | Refund payment       | ✅ (Admin)    |
+| GET    | `/payments`                   | Get all payments     | ✅ (Admin)    |
 
 ### 📦 Shipping & Delivery
 
@@ -374,23 +372,30 @@ Content-Type: application/json
 }
 ```
 
-### Initiate Payment
+### Create Payment Order
 
 ```json
 {
-  "orderId": 1,
-  "paymentMethod": "stripe",
-  "amount": 999.99
+  "amount": 999.99,
+  "currency": "USD"
 }
 ```
 
-### Update Shipping Status
+### Verify Payment
 
 ```json
 {
-  "status": "in_transit",
-  "trackingNumber": "TRK123456789",
-  "location": "New York Distribution Center"
+  "razorpay_order_id": "order_123",
+  "razorpay_payment_id": "pay_123",
+  "razorpay_signature": "signature_123"
+}
+```
+
+### Refund Payment
+
+```json
+{
+  "amount": 999.99
 }
 ```
 

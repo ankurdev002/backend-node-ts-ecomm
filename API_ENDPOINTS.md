@@ -589,57 +589,40 @@ Content-Type: application/json
 
 ## 💳 **PAYMENT PROCESSING**
 
-### 53. Initiate Payment
+### 53. Create Payment Order
 
 ```http
-POST /api/payments/initiate
+POST /api/payments/create-order
 Authorization: Bearer <token>
 Content-Type: application/json
 
 {
-  "orderId": 1,
-  "paymentMethod": "stripe",
-  "amount": 999.99
+  "amount": 999.99,
+  "currency": "USD"
 }
 ```
 
-### 54. Payment Callback
+### 54. Verify Payment
 
 ```http
-POST /api/payments/:paymentId/callback
+POST /api/payments/verify-payment
 Content-Type: application/json
 
 {
-  "status": "completed",
-  "transactionId": "txn_123456"
+  "razorpay_order_id": "order_123",
+  "razorpay_payment_id": "pay_123",
+  "razorpay_signature": "signature_123"
 }
 ```
 
-### 55. Stripe Callback
+### 55. Get Payment Details
 
 ```http
-POST /api/payments/:paymentId/stripe/callback
-Content-Type: application/json
-
-{
-  "payment_intent": "pi_123456",
-  "status": "succeeded"
-}
+GET /api/payments/:paymentId
+Authorization: Bearer <token>
 ```
 
-### 56. PayPal Callback
-
-```http
-POST /api/payments/:paymentId/paypal/callback
-Content-Type: application/json
-
-{
-  "payment_id": "PAY-123456",
-  "state": "approved"
-}
-```
-
-### 57. Refund Payment (Admin)
+### 56. Refund Payment (Admin)
 
 ```http
 POST /api/payments/:paymentId/refund
@@ -647,30 +630,22 @@ Authorization: Bearer <admin_token>
 Content-Type: application/json
 
 {
-  "reason": "Customer request",
   "amount": 999.99
 }
 ```
 
-### 58. Get Order Payments
+### 57. Get All Payments (Admin)
 
 ```http
-GET /api/payments/order/:orderId
-Authorization: Bearer <token>
-```
-
-### 59. Get Payment Details
-
-```http
-GET /api/payments/:paymentId
-Authorization: Bearer <token>
+GET /api/payments
+Authorization: Bearer <admin_token>
 ```
 
 ---
 
 ## 📦 **SHIPPING & DELIVERY**
 
-### 60. Update Shipping Status
+### 58. Update Shipping Status
 
 ```http
 PUT /api/shipping/:shippingId/status
@@ -684,20 +659,20 @@ Content-Type: application/json
 }
 ```
 
-### 61. Get Shipping Info
+### 59. Get Shipping Info
 
 ```http
 GET /api/shipping/order/:orderId
 Authorization: Bearer <token>
 ```
 
-### 62. Track Shipment (Public)
+### 60. Track Shipment (Public)
 
 ```http
 GET /api/shipping/track/:trackingNumber
 ```
 
-### 63. Get Delivery Assignments
+### 61. Get Delivery Assignments
 
 ```http
 GET /api/shipping/delivery/assignments?page=1&limit=10
@@ -708,7 +683,7 @@ Authorization: Bearer <delivery_token>
 
 ## 💝 **WISHLIST MANAGEMENT**
 
-### 64. Add Item to Wishlist
+### 62. Add Item to Wishlist
 
 ```http
 POST /api/wishlist/add
@@ -720,49 +695,49 @@ Content-Type: application/json
 }
 ```
 
-### 65. Get User Wishlist
+### 63. Get User Wishlist
 
 ```http
 GET /api/wishlist?page=1&limit=10
 Authorization: Bearer <token>
 ```
 
-### 66. Get Wishlist Item Count
+### 64. Get Wishlist Item Count
 
 ```http
 GET /api/wishlist/count
 Authorization: Bearer <token>
 ```
 
-### 67. Check if Product in Wishlist
+### 65. Check if Product in Wishlist
 
 ```http
-GET /api/wishlist/check/1
+GET /api/wishlist/check/:productId
 Authorization: Bearer <token>
 ```
 
-### 68. Remove Item from Wishlist
+### 66. Remove Item from Wishlist
 
 ```http
-DELETE /api/wishlist/1
+DELETE /api/wishlist/:wishlistItemId
 Authorization: Bearer <token>
 ```
 
-### 69. Remove Item by Product ID
+### 67. Remove Item by Product ID
 
 ```http
-DELETE /api/wishlist/product/1
+DELETE /api/wishlist/product/:productId
 Authorization: Bearer <token>
 ```
 
-### 70. Move Wishlist Item to Cart
+### 68. Move Wishlist Item to Cart
 
 ```http
-POST /api/wishlist/1/move-to-cart
+POST /api/wishlist/:wishlistItemId/move-to-cart
 Authorization: Bearer <token>
 ```
 
-### 71. Clear Wishlist
+### 69. Clear Wishlist
 
 ```http
 DELETE /api/wishlist
@@ -773,13 +748,13 @@ Authorization: Bearer <token>
 
 ## 🎟️ **COUPON MANAGEMENT**
 
-### 72. Get Coupon Info by Code (Public)
+### 70. Get Coupon Info by Code (Public)
 
 ```http
-GET /api/coupons/code/SAVE10
+GET /api/coupons/code/:code
 ```
 
-### 73. Validate Coupon Code
+### 71. Validate Coupon Code
 
 ```http
 POST /api/coupons/validate
@@ -793,7 +768,7 @@ Content-Type: application/json
 }
 ```
 
-### 74. Apply Coupon to Order
+### 72. Apply Coupon to Order
 
 ```http
 POST /api/coupons/apply
@@ -806,21 +781,21 @@ Content-Type: application/json
 }
 ```
 
-### 75. Get Available Coupons for User
+### 73. Get Available Coupons for User
 
 ```http
 GET /api/coupons/available?orderAmount=100&productIds=1,2,3
 Authorization: Bearer <token>
 ```
 
-### 76. Get User Coupon Usage History
+### 74. Get User Coupon Usage History
 
 ```http
 GET /api/coupons/history?page=1&limit=10
 Authorization: Bearer <token>
 ```
 
-### 77. Create Coupon (Admin)
+### 75. Create Coupon (Admin)
 
 ```http
 POST /api/coupons
@@ -844,24 +819,24 @@ Content-Type: application/json
 }
 ```
 
-### 78. Get All Coupons (Admin)
+### 76. Get All Coupons (Admin)
 
 ```http
 GET /api/coupons?page=1&limit=10&isActive=true&type=percentage
 Authorization: Bearer <admin_token>
 ```
 
-### 79. Get Coupon by ID (Admin)
+### 77. Get Coupon by ID (Admin)
 
 ```http
-GET /api/coupons/1
+GET /api/coupons/:couponId
 Authorization: Bearer <admin_token>
 ```
 
-### 80. Update Coupon (Admin)
+### 78. Update Coupon (Admin)
 
 ```http
-PUT /api/coupons/1
+PUT /api/coupons/:couponId
 Authorization: Bearer <admin_token>
 Content-Type: application/json
 
@@ -873,17 +848,17 @@ Content-Type: application/json
 }
 ```
 
-### 81. Delete Coupon (Admin)
+### 79. Delete Coupon (Admin)
 
 ```http
-DELETE /api/coupons/1
+DELETE /api/coupons/:couponId
 Authorization: Bearer <admin_token>
 ```
 
-### 82. Get Coupon Usage Statistics (Admin)
+### 80. Get Coupon Usage Statistics (Admin)
 
 ```http
-GET /api/coupons/1/stats
+GET /api/coupons/:couponId/stats
 Authorization: Bearer <admin_token>
 ```
 
@@ -891,7 +866,7 @@ Authorization: Bearer <admin_token>
 
 ## ⭐ **REVIEWS & RATINGS**
 
-### 83. Create Review
+### 81. Create Review
 
 ```http
 POST /api/reviews
@@ -906,20 +881,20 @@ Content-Type: application/json
 }
 ```
 
-### 84. Get Product Reviews
+### 82. Get Product Reviews
 
 ```http
 GET /api/reviews/product/:productId?page=1&limit=10&rating=5&sortBy=createdAt&sortOrder=DESC
 ```
 
-### 85. Get User Reviews
+### 83. Get User Reviews
 
 ```http
 GET /api/reviews/user
 Authorization: Bearer <token>
 ```
 
-### 86. Update Review
+### 84. Update Review
 
 ```http
 PUT /api/reviews/:reviewId
@@ -933,7 +908,7 @@ Content-Type: application/json
 }
 ```
 
-### 87. Delete Review
+### 85. Delete Review
 
 ```http
 DELETE /api/reviews/:reviewId
@@ -944,21 +919,21 @@ Authorization: Bearer <token>
 
 ## 👨‍💼 **ADMIN PANEL**
 
-### 88. Admin Dashboard
+### 86. Admin Dashboard
 
 ```http
 GET /api/admin/dashboard
 Authorization: Bearer <admin_token>
 ```
 
-### 89. Get All Users
+### 87. Get All Users
 
 ```http
 GET /api/admin/users?page=1&limit=10&userType=normal&status=active
 Authorization: Bearer <admin_token>
 ```
 
-### 90. Update User Status
+### 88. Update User Status
 
 ```http
 PUT /api/admin/users/:userId/status
@@ -971,14 +946,14 @@ Content-Type: application/json
 }
 ```
 
-### 91. Get All Orders
+### 89. Get All Orders
 
 ```http
 GET /api/admin/orders?page=1&limit=10&status=pending
 Authorization: Bearer <admin_token>
 ```
 
-### 92. Get Revenue Report
+### 90. Get Revenue Report
 
 ```http
 GET /api/admin/reports/revenue
@@ -989,28 +964,28 @@ Authorization: Bearer <admin_token>
 
 ## 🏪 **VENDOR PANEL**
 
-### 93. Vendor Dashboard
+### 91. Vendor Dashboard
 
 ```http
 GET /api/vendor/dashboard
 Authorization: Bearer <vendor_token>
 ```
 
-### 94. Get Vendor Products
+### 92. Get Vendor Products
 
 ```http
 GET /api/vendor/products?page=1&limit=10&status=active
 Authorization: Bearer <vendor_token>
 ```
 
-### 95. Get Vendor Orders
+### 93. Get Vendor Orders
 
 ```http
 GET /api/vendor/orders?page=1&limit=10&status=pending
 Authorization: Bearer <vendor_token>
 ```
 
-### 96. Update Order Status (Vendor)
+### 94. Update Order Status (Vendor)
 
 ```http
 PUT /api/vendor/orders/:orderId/status
@@ -1022,7 +997,7 @@ Content-Type: application/json
 }
 ```
 
-### 97. Get Inventory Report
+### 95. Get Inventory Report
 
 ```http
 GET /api/vendor/inventory/report
@@ -1033,21 +1008,21 @@ Authorization: Bearer <vendor_token>
 
 ## 🚚 **DELIVERY PANEL**
 
-### 98. Delivery Dashboard
+### 96. Delivery Dashboard
 
 ```http
 GET /api/delivery/dashboard
 Authorization: Bearer <delivery_token>
 ```
 
-### 99. Get Assigned Orders
+### 97. Get Assigned Orders
 
 ```http
 GET /api/delivery/orders?page=1&limit=10&status=assigned
 Authorization: Bearer <delivery_token>
 ```
 
-### 100. Update Delivery Status
+### 98. Update Delivery Status
 
 ```http
 PUT /api/delivery/orders/:orderId/status
@@ -1061,7 +1036,7 @@ Content-Type: application/json
 }
 ```
 
-### 101. Get Delivery Route
+### 99. Get Delivery Route
 
 ```http
 GET /api/delivery/route?date=2024-01-15
@@ -1070,7 +1045,7 @@ Authorization: Bearer <delivery_token>
 
 ## 📦 **INVENTORY MANAGEMENT (Admin/Vendor)**
 
-### 102. Create Inventory
+### 100. Create Inventory
 
 ```http
 POST /api/inventory/create
@@ -1085,14 +1060,14 @@ Content-Type: application/json
 }
 ```
 
-### 103. Get Product Inventory
+### 101. Get Product Inventory
 
 ```http
 GET /api/inventory/product/:productId
 Authorization: Bearer <admin_token>
 ```
 
-### 104. Update Product Inventory
+### 102. Update Product Inventory
 
 ```http
 PUT /api/inventory/product/:productId
@@ -1106,7 +1081,7 @@ Content-Type: application/json
 }
 ```
 
-### 105. Restock Product
+### 103. Restock Product
 
 ```http
 POST /api/inventory/restock/:productId
@@ -1118,21 +1093,21 @@ Content-Type: application/json
 }
 ```
 
-### 106. Get Low Stock Products
+### 104. Get Low Stock Products
 
 ```http
 GET /api/inventory/low-stock
 Authorization: Bearer <admin_token>
 ```
 
-### 107. Get Out of Stock Products
+### 105. Get Out of Stock Products
 
 ```http
 GET /api/inventory/out-of-stock
 Authorization: Bearer <admin_token>
 ```
 
-### 108. Get Inventory Report
+### 106. Get Inventory Report
 
 ```http
 GET /api/inventory/report

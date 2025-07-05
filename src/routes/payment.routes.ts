@@ -1,4 +1,5 @@
 import express from "express";
+import { ENDPOINTS } from "../constants/endpoint";
 import { USER_ROLES } from "../constants/user_roles";
 import PaymentController from "../controllers/payment.controller";
 import { authenticateUser } from "../middleware/auth.middleware";
@@ -17,7 +18,7 @@ const controller = PaymentController;
 
 // Create payment order
 router.post(
-  "/create-order",
+  ENDPOINTS.PAYMENT_ROUTE.CERATE_PAYMENT_ORDER,
   authenticateUser,
   validate(createOrderSchema),
   controller.createOrder.bind(controller)
@@ -25,14 +26,14 @@ router.post(
 
 // Verify payment
 router.post(
-  "/verify",
+  ENDPOINTS.PAYMENT_ROUTE.VERIFY_PAYMENT,
   validate(verifyPaymentSchema),
   controller.verifyPayment.bind(controller)
 );
 
 // Get payment details
 router.get(
-  "/:paymentId",
+  ENDPOINTS.PAYMENT_ROUTE.GET_PAYMENT_DETAILS,
   authenticateUser,
   validate(paymentIdParamSchema),
   controller.getPaymentDetails.bind(controller)
@@ -40,7 +41,7 @@ router.get(
 
 // Refund payment (Admin only)
 router.post(
-  "/:paymentId/refund",
+  ENDPOINTS.PAYMENT_ROUTE.REFUND_PAYMENT,
   authenticateUser,
   authorizeRole([USER_ROLES.ADMIN]),
   validate(refundPaymentSchema),
@@ -49,7 +50,7 @@ router.post(
 
 // Get all payments (Admin only)
 router.get(
-  "/",
+  ENDPOINTS.PAYMENT_ROUTE.GET_ALL_PAYMENTS,
   authenticateUser,
   authorizeRole([USER_ROLES.ADMIN]),
   validate(getAllPaymentsSchema),

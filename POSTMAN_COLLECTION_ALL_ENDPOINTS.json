@@ -668,7 +668,7 @@
       "name": "Payment Processing",
       "item": [
         {
-          "name": "53. Initiate Payment",
+          "name": "53. Create Payment Order",
           "request": {
             "method": "POST",
             "header": [
@@ -677,49 +677,35 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"orderId\": 1,\n  \"paymentMethod\": \"stripe\",\n  \"amount\": 999.99\n}"
+              "raw": "{\n  \"amount\": 999.99,\n  \"currency\": \"USD\"\n}"
             },
-            "url": "{{base_url}}/payments/initiate"
+            "url": "{{base_url}}/payments/create-order"
           }
         },
         {
-          "name": "54. Payment Callback",
+          "name": "54. Verify Payment",
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"status\": \"completed\",\n  \"transactionId\": \"txn_123456789\",\n  \"amount\": 999.99\n}"
+              "raw": "{\n  \"razorpay_order_id\": \"order_123\",\n  \"razorpay_payment_id\": \"pay_123\",\n  \"razorpay_signature\": \"signature_123\"\n}"
             },
-            "url": "{{base_url}}/payments/1/callback"
+            "url": "{{base_url}}/payments/verify-payment"
           }
         },
         {
-          "name": "55. Stripe Callback",
+          "name": "55. Get Payment Details",
           "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"payment_intent\": \"pi_1234567890\",\n  \"status\": \"succeeded\",\n  \"amount_received\": 99999\n}"
-            },
-            "url": "{{base_url}}/payments/1/stripe/callback"
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/payments/:paymentId"
           }
         },
         {
-          "name": "56. PayPal Callback",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"payment_id\": \"PAY-1234567890\",\n  \"state\": \"approved\",\n  \"payer_id\": \"PAYER123\"\n}"
-            },
-            "url": "{{base_url}}/payments/1/paypal/callback"
-          }
-        },
-        {
-          "name": "57. Refund Payment (Admin)",
+          "name": "56. Refund Payment (Admin)",
           "request": {
             "method": "POST",
             "header": [
@@ -728,29 +714,19 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"reason\": \"Customer request\",\n  \"amount\": 999.99\n}"
+              "raw": "{\n  \"amount\": 999.99\n}"
             },
-            "url": "{{base_url}}/payments/1/refund"
+            "url": "{{base_url}}/payments/:paymentId/refund"
           }
         },
         {
-          "name": "58. Get Order Payments",
+          "name": "57. Get All Payments (Admin)",
           "request": {
             "method": "GET",
             "header": [
               { "key": "Authorization", "value": "Bearer {{auth_token}}" }
             ],
-            "url": "{{base_url}}/payments/order/1"
-          }
-        },
-        {
-          "name": "59. Get Payment Details",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
-            ],
-            "url": "{{base_url}}/payments/1"
+            "url": "{{base_url}}/payments"
           }
         }
       ]
@@ -759,7 +735,7 @@
       "name": "Shipping & Delivery",
       "item": [
         {
-          "name": "60. Update Shipping Status",
+          "name": "58. Update Shipping Status",
           "request": {
             "method": "PUT",
             "header": [
@@ -768,30 +744,30 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"status\": \"in_transit\",\n  \"trackingNumber\": \"TRK123456789\",\n  \"location\": \"New York Distribution Center\",\n  \"estimatedDelivery\": \"2024-01-15\"\n}"
+              "raw": "{\n  \"status\": \"in_transit\",\n  \"trackingNumber\": \"TRK123456789\",\n  \"location\": \"New York Distribution Center\"\n}"
             },
-            "url": "{{base_url}}/shipping/1/status"
+            "url": "{{base_url}}/shipping/:shippingId/status"
           }
         },
         {
-          "name": "61. Get Shipping Info",
+          "name": "59. Get Shipping Info",
           "request": {
             "method": "GET",
             "header": [
               { "key": "Authorization", "value": "Bearer {{auth_token}}" }
             ],
-            "url": "{{base_url}}/shipping/order/1"
+            "url": "{{base_url}}/shipping/order/:orderId"
           }
         },
         {
-          "name": "62. Track Shipment (Public)",
+          "name": "60. Track Shipment (Public)",
           "request": {
             "method": "GET",
             "url": "{{base_url}}/shipping/track/TRK123456789"
           }
         },
         {
-          "name": "63. Get Delivery Assignments",
+          "name": "61. Get Delivery Assignments",
           "request": {
             "method": "GET",
             "header": [
@@ -806,7 +782,7 @@
       "name": "Reviews & Ratings",
       "item": [
         {
-          "name": "64. Create Product Review",
+          "name": "62. Create Product Review",
           "request": {
             "method": "POST",
             "header": [
@@ -821,14 +797,14 @@
           }
         },
         {
-          "name": "65. Get Product Reviews (Public)",
+          "name": "63. Get Product Reviews (Public)",
           "request": {
             "method": "GET",
             "url": "{{base_url}}/reviews/product/1?page=1&limit=10&rating=5&sortBy=createdAt&sortOrder=DESC"
           }
         },
         {
-          "name": "66. Get User Reviews",
+          "name": "64. Get User Reviews",
           "request": {
             "method": "GET",
             "header": [
@@ -838,7 +814,7 @@
           }
         },
         {
-          "name": "67. Update Review",
+          "name": "65. Update Review",
           "request": {
             "method": "PUT",
             "header": [
@@ -853,7 +829,7 @@
           }
         },
         {
-          "name": "68. Delete Review",
+          "name": "66. Delete Review",
           "request": {
             "method": "DELETE",
             "header": [
@@ -868,7 +844,7 @@
       "name": "Admin Panel",
       "item": [
         {
-          "name": "69. Admin Dashboard",
+          "name": "67. Admin Dashboard",
           "request": {
             "method": "GET",
             "header": [
@@ -878,7 +854,7 @@
           }
         },
         {
-          "name": "70. Get All Users",
+          "name": "68. Get All Users",
           "request": {
             "method": "GET",
             "header": [
@@ -888,7 +864,7 @@
           }
         },
         {
-          "name": "71. Get All Orders",
+          "name": "69. Get All Orders",
           "request": {
             "method": "GET",
             "header": [
@@ -898,7 +874,7 @@
           }
         },
         {
-          "name": "72. Update User Status",
+          "name": "70. Update User Status",
           "request": {
             "method": "PUT",
             "header": [
@@ -913,7 +889,7 @@
           }
         },
         {
-          "name": "73. Get Revenue Report",
+          "name": "71. Get Revenue Report",
           "request": {
             "method": "GET",
             "header": [
@@ -928,7 +904,7 @@
       "name": "Vendor Panel",
       "item": [
         {
-          "name": "74. Vendor Dashboard",
+          "name": "72. Vendor Dashboard",
           "request": {
             "method": "GET",
             "header": [
@@ -938,7 +914,7 @@
           }
         },
         {
-          "name": "75. Get Vendor Products",
+          "name": "73. Get Vendor Products",
           "request": {
             "method": "GET",
             "header": [
@@ -948,7 +924,7 @@
           }
         },
         {
-          "name": "76. Get Vendor Orders",
+          "name": "74. Get Vendor Orders",
           "request": {
             "method": "GET",
             "header": [
@@ -958,7 +934,7 @@
           }
         },
         {
-          "name": "77. Update Order Status (Vendor)",
+          "name": "75. Update Order Status (Vendor)",
           "request": {
             "method": "PUT",
             "header": [
@@ -973,7 +949,7 @@
           }
         },
         {
-          "name": "78. Get Inventory Report",
+          "name": "76. Get Inventory Report",
           "request": {
             "method": "GET",
             "header": [
@@ -988,7 +964,7 @@
       "name": "Delivery Panel",
       "item": [
         {
-          "name": "79. Delivery Dashboard",
+          "name": "77. Delivery Dashboard",
           "request": {
             "method": "GET",
             "header": [
@@ -998,7 +974,7 @@
           }
         },
         {
-          "name": "80. Get Assigned Orders",
+          "name": "78. Get Assigned Orders",
           "request": {
             "method": "GET",
             "header": [
@@ -1008,7 +984,7 @@
           }
         },
         {
-          "name": "81. Update Delivery Status",
+          "name": "79. Update Delivery Status",
           "request": {
             "method": "PUT",
             "header": [
@@ -1023,7 +999,7 @@
           }
         },
         {
-          "name": "82. Get Delivery Route",
+          "name": "80. Get Delivery Route",
           "request": {
             "method": "GET",
             "header": [
@@ -1038,7 +1014,7 @@
       "name": "Wishlist Management",
       "item": [
         {
-          "name": "90. Add Item to Wishlist",
+          "name": "81. Add Item to Wishlist",
           "request": {
             "method": "POST",
             "header": [
@@ -1053,7 +1029,7 @@
           }
         },
         {
-          "name": "91. Get User Wishlist",
+          "name": "82. Get User Wishlist",
           "request": {
             "method": "GET",
             "header": [
@@ -1063,7 +1039,7 @@
           }
         },
         {
-          "name": "92. Get Wishlist Item Count",
+          "name": "83. Get Wishlist Item Count",
           "request": {
             "method": "GET",
             "header": [
@@ -1073,7 +1049,7 @@
           }
         },
         {
-          "name": "93. Check if Product in Wishlist",
+          "name": "84. Check if Product in Wishlist",
           "request": {
             "method": "GET",
             "header": [
@@ -1083,7 +1059,7 @@
           }
         },
         {
-          "name": "94. Remove Item from Wishlist",
+          "name": "85. Remove Item from Wishlist",
           "request": {
             "method": "DELETE",
             "header": [
@@ -1093,7 +1069,7 @@
           }
         },
         {
-          "name": "95. Remove Item by Product ID",
+          "name": "86. Remove Item by Product ID",
           "request": {
             "method": "DELETE",
             "header": [
@@ -1103,7 +1079,7 @@
           }
         },
         {
-          "name": "96. Move Wishlist Item to Cart",
+          "name": "87. Move Wishlist Item to Cart",
           "request": {
             "method": "POST",
             "header": [
@@ -1113,7 +1089,7 @@
           }
         },
         {
-          "name": "97. Clear Wishlist",
+          "name": "88. Clear Wishlist",
           "request": {
             "method": "DELETE",
             "header": [
@@ -1128,14 +1104,14 @@
       "name": "Coupon Management",
       "item": [
         {
-          "name": "98. Get Coupon Info by Code (Public)",
+          "name": "89. Get Coupon Info by Code (Public)",
           "request": {
             "method": "GET",
             "url": "{{base_url}}/coupons/code/SAVE10"
           }
         },
         {
-          "name": "99. Validate Coupon Code",
+          "name": "90. Validate Coupon Code",
           "request": {
             "method": "POST",
             "header": [
@@ -1150,7 +1126,7 @@
           }
         },
         {
-          "name": "100. Apply Coupon to Order",
+          "name": "91. Apply Coupon to Order",
           "request": {
             "method": "POST",
             "header": [
@@ -1165,7 +1141,7 @@
           }
         },
         {
-          "name": "101. Get Available Coupons for User",
+          "name": "92. Get Available Coupons for User",
           "request": {
             "method": "GET",
             "header": [
@@ -1175,7 +1151,7 @@
           }
         },
         {
-          "name": "102. Get User Coupon Usage History",
+          "name": "93. Get User Coupon Usage History",
           "request": {
             "method": "GET",
             "header": [
@@ -1185,7 +1161,7 @@
           }
         },
         {
-          "name": "103. Create Coupon (Admin)",
+          "name": "94. Create Coupon (Admin)",
           "request": {
             "method": "POST",
             "header": [
@@ -1200,7 +1176,7 @@
           }
         },
         {
-          "name": "104. Get All Coupons (Admin)",
+          "name": "95. Get All Coupons (Admin)",
           "request": {
             "method": "GET",
             "header": [
@@ -1210,7 +1186,7 @@
           }
         },
         {
-          "name": "105. Get Coupon by ID (Admin)",
+          "name": "96. Get Coupon by ID (Admin)",
           "request": {
             "method": "GET",
             "header": [
@@ -1220,7 +1196,7 @@
           }
         },
         {
-          "name": "106. Update Coupon (Admin)",
+          "name": "97. Update Coupon (Admin)",
           "request": {
             "method": "PUT",
             "header": [
@@ -1235,7 +1211,7 @@
           }
         },
         {
-          "name": "107. Delete Coupon (Admin)",
+          "name": "98. Delete Coupon (Admin)",
           "request": {
             "method": "DELETE",
             "header": [
@@ -1245,7 +1221,7 @@
           }
         },
         {
-          "name": "108. Get Coupon Usage Statistics (Admin)",
+          "name": "99. Get Coupon Usage Statistics (Admin)",
           "request": {
             "method": "GET",
             "header": [
@@ -1260,7 +1236,7 @@
       "name": "Inventory Management (Admin/Vendor)",
       "item": [
         {
-          "name": "109. Create Inventory",
+          "name": "100. Create Inventory",
           "request": {
             "method": "POST",
             "header": [
@@ -1275,7 +1251,7 @@
           }
         },
         {
-          "name": "110. Get Product Inventory",
+          "name": "101. Get Product Inventory",
           "request": {
             "method": "GET",
             "header": [
@@ -1285,7 +1261,7 @@
           }
         },
         {
-          "name": "111. Update Product Inventory",
+          "name": "102. Update Product Inventory",
           "request": {
             "method": "PUT",
             "header": [
@@ -1300,7 +1276,7 @@
           }
         },
         {
-          "name": "112. Restock Product",
+          "name": "103. Restock Product",
           "request": {
             "method": "POST",
             "header": [
@@ -1315,7 +1291,7 @@
           }
         },
         {
-          "name": "113. Get Low Stock Products",
+          "name": "104. Get Low Stock Products",
           "request": {
             "method": "GET",
             "header": [
@@ -1325,7 +1301,7 @@
           }
         },
         {
-          "name": "114. Get Out of Stock Products",
+          "name": "105. Get Out of Stock Products",
           "request": {
             "method": "GET",
             "header": [
@@ -1335,7 +1311,7 @@
           }
         },
         {
-          "name": "115. Get Inventory Report",
+          "name": "106. Get Inventory Report",
           "request": {
             "method": "GET",
             "header": [

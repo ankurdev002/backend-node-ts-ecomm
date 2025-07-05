@@ -68,13 +68,11 @@ export const ENDPOINTS = {
     DELETE_ADDRESS: "/:addressId",
   },
   PAYMENT_ROUTE: {
-    INITIATE_PAYMENT: "/initiate",
-    PAYMENT_CALLBACK: "/:paymentId/callback",
-    STRIPE_CALLBACK: "/:paymentId/stripe/callback",
-    PAYPAL_CALLBACK: "/:paymentId/paypal/callback",
+    CERATE_PAYMENT_ORDER: "/create-order",
+    VERIFY_PAYMENT: "/verify-payment",
+    GET_PAYMENT_DETAILS: "/:paymentId",
     REFUND_PAYMENT: "/:paymentId/refund",
-    GET_ORDER_PAYMENTS: "/order/:orderId",
-    GET_PAYMENT: "/:paymentId",
+    GET_ALL_PAYMENTS: "/",
   },
   REVIEW_ROUTE: {
     CREATE_REVIEW: "/",
