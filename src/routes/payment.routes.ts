@@ -53,7 +53,7 @@ router.get(
   ENDPOINTS.PAYMENT_ROUTE.GET_ALL_PAYMENTS,
   authenticateUser,
   authorizeRole([USER_ROLES.ADMIN]),
-  validate(getAllPaymentsSchema),
+  // validate(getAllPaymentsSchema),
   controller.getAllPayments.bind(controller)
 );
 

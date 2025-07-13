@@ -1,12 +1,11 @@
-import { Request, Response } from "express";
-import { AuthenticatedRequest } from "../types/common.type";
-import User from "../models/user.model";
-import Order from "../models/order.model";
-import { Product } from "../models/product.model";
-import Review from "../models/review.model";
-import Payment from "../models/payment.model";
-import { USER_ROLES } from "../constants/user_roles";
+import { Response } from "express";
 import { Op } from "sequelize";
+import { USER_ROLES } from "../constants/user_roles";
+import Order from "../models/order.model";
+import Payment from "../models/payment.model";
+import { Product } from "../models/product.model";
+import User from "../models/user.model";
+import { AuthenticatedRequest } from "../types/common.type";
 
 export const getDashboardStats = async (
   req: AuthenticatedRequest,
@@ -153,7 +152,14 @@ export const getAllOrders = async (
 ): Promise<any> => {
   try {
     const userType = req.user?.userType;
-    const { page = 1, limit = 10, status, startDate, endDate } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      status,
+      startDate,
+      endDate,
+      search,
+    } = req.query;
 
     if (userType !== USER_ROLES.ADMIN) {
       return res.status(403).json({
@@ -173,6 +179,13 @@ export const getAllOrders = async (
           new Date(endDate as string),
         ],
       };
+    }
+    if (search) {
+      whereClause[Op.or] = [
+        { "$customer.name$": { [Op.iLike]: `%${search}%` } },
+        { "$customer.email$": { [Op.iLike]: `%${search}%` } },
+        { orderNumber: { [Op.iLike]: `%${search}%` } },
+      ];
     }
 
     const offset = (parseInt(page as string) - 1) * parseInt(limit as string);

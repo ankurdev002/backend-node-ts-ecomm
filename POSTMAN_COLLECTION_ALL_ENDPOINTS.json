@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "E-Commerce Backend - Complete API Collection Updated",
-    "description": "Complete collection with all 115 API endpoints based on actual codebase implementation with proper payloads and authentication",
+    "description": "Complete collection with all 106 API endpoints based on actual codebase implementation with proper payloads and authentication",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
