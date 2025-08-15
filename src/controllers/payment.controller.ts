@@ -11,7 +11,13 @@ import {
   processStripePayment,
   processPayPalPayment,
 } from "../services/payment.service";
-import PaymentService from "../services/payment.service";
+import {
+  createOrderRazorpay,
+  verifyPaymentSignatureRazorpay,
+  fetchPaymentDetailsRazorpay,
+  refundPaymentMethodRazorpay,
+  fetchAllPaymentsRazorpay,
+} from "../services/payment.service";
 
 export const initiatePayment = async (
   req: AuthenticatedRequest,
@@ -287,142 +293,148 @@ export const getPayment = async (
   }
 };
 
-class PaymentController {
-  // Create a new payment order
-  async createOrder(req: Request, res: Response): Promise<void> {
-    try {
-      const { amount, currency = "INR" } = req.body;
+// Create a new payment order
+export const createOrder = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { amount, currency = "INR" } = req.body;
 
-      if (!amount || amount <= 0) {
-        res.status(400).json({
-          success: false,
-          message: "Invalid amount",
-        });
-        return;
-      }
-
-      const receipt = `order_${Date.now()}`;
-      const order = await PaymentService.createOrder(amount, currency, receipt);
-
-      res.status(200).json({
-        success: true,
-        data: order,
-      });
-    } catch (error) {
-      res.status(500).json({
+    if (!amount || amount <= 0) {
+      res.status(400).json({
         success: false,
-        message:
-          error instanceof Error ? error.message : "Internal server error",
+        message: "Invalid amount",
       });
+      return;
     }
+
+    const receipt = `order_${Date.now()}`;
+    const order = await createOrderRazorpay(amount, currency, receipt);
+
+    res.status(200).json({
+      success: true,
+      data: order,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : "Internal server error",
+    });
   }
+};
 
-  // Verify payment after completion
-  async verifyPayment(req: Request, res: Response): Promise<void> {
-    try {
-      const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
-        req.body;
+// Verify payment after completion
+export const verifyPayment = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+      req.body;
 
-      if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-        res.status(400).json({
-          success: false,
-          message: "Missing required payment verification parameters",
-        });
-        return;
-      }
-
-      const isValid = PaymentService.verifyPaymentSignature(
-        razorpay_order_id,
-        razorpay_payment_id,
-        razorpay_signature
-      );
-
-      if (!isValid) {
-        res.status(400).json({
-          success: false,
-          message: "Invalid payment signature",
-        });
-        return;
-      }
-
-      res.status(200).json({
-        success: true,
-        message: "Payment verified successfully",
-      });
-    } catch (error) {
-      res.status(500).json({
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      res.status(400).json({
         success: false,
-        message:
-          error instanceof Error ? error.message : "Internal server error",
+        message: "Missing required payment verification parameters",
       });
+      return;
     }
-  }
 
-  // Get payment details
-  async getPaymentDetails(req: Request, res: Response): Promise<void> {
-    try {
-      const { paymentId } = req.params;
-      const payment = await PaymentService.fetchPaymentDetails(paymentId);
+    const isValid = verifyPaymentSignatureRazorpay(
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature
+    );
 
-      res.status(200).json({
-        success: true,
-        data: payment,
-      });
-    } catch (error) {
-      res.status(500).json({
+    if (!isValid) {
+      res.status(400).json({
         success: false,
-        message:
-          error instanceof Error ? error.message : "Internal server error",
+        message: "Invalid payment signature",
       });
+      return;
     }
+
+    res.status(200).json({
+      success: true,
+      message: "Payment verified successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : "Internal server error",
+    });
   }
+};
 
-  // Refund payment
-  async refundPayment(req: Request, res: Response): Promise<void> {
-    try {
-      const { paymentId } = req.params;
-      const { amount } = req.body;
-      const refund = await PaymentService.refundPayment(paymentId, amount);
+// Get payment details
+export const getPaymentDetails = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { paymentId } = req.params;
+    const payment = await fetchPaymentDetailsRazorpay(paymentId);
 
-      res.status(200).json({
-        success: true,
-        data: refund,
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message:
-          error instanceof Error ? error.message : "Internal server error",
-      });
-    }
+    res.status(200).json({
+      success: true,
+      data: payment,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : "Internal server error",
+    });
   }
+};
 
-  // Get all payments
-  async getAllPayments(req: Request, res: Response): Promise<void> {
-    try {
-      const { from, to, skip, count } = req.query;
+// Refund payment
+export const refundPaymentMethod = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { paymentId } = req.params;
+    const { amount } = req.body;
+    const refund = await refundPaymentMethodRazorpay(paymentId, amount);
 
-      const options = {
-        from: from ? new Date(from as string) : undefined,
-        to: to ? new Date(to as string) : undefined,
-        skip: skip ? parseInt(skip as string) : undefined,
-        count: count ? parseInt(count as string) : undefined,
-      };
-
-      const payments = await PaymentService.fetchAllPayments(options);
-
-      res.status(200).json({
-        success: true,
-        data: payments,
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message:
-          error instanceof Error ? error.message : "Internal server error",
-      });
-    }
+    res.status(200).json({
+      success: true,
+      data: refund,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : "Internal server error",
+    });
   }
-}
+};
 
-export default new PaymentController();
+// Get all payments
+export const getAllPayments = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { from, to, skip, count } = req.query;
+
+    const options = {
+      from: from ? new Date(from as string) : undefined,
+      to: to ? new Date(to as string) : undefined,
+      skip: skip ? parseInt(skip as string) : undefined,
+      count: count ? parseInt(count as string) : undefined,
+    };
+
+    const payments = await fetchAllPaymentsRazorpay(options);
+
+    res.status(200).json({
+      success: true,
+      data: payments,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : "Internal server error",
+    });
+  }
+};
