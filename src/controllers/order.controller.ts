@@ -118,6 +118,7 @@ export const updateOrder = async (
     const userType = req.user?.userType;
     const { orderId } = req.params;
     const { status } = req.body;
+    const { paymentStatus } = req.body;
 
     if (!userId) {
       return res.status(401).json({
@@ -130,7 +131,8 @@ export const updateOrder = async (
       parseInt(orderId),
       status,
       userId,
-      userType
+      userType,
+      paymentStatus
     );
 
     res.json({

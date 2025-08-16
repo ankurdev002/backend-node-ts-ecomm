@@ -316,7 +316,8 @@ export const updateOrderStatus = async (
   orderId: number,
   status: string,
   userId: number,
-  userType: string
+  userType: string,
+  paymentStatus: string
 ) => {
   const order = await Order.findByPk(orderId);
 
@@ -334,6 +335,7 @@ export const updateOrderStatus = async (
   }
 
   order.status = status as any;
+  order.paymentStatus = paymentStatus as any;
   await order.save();
 
   // Create notification

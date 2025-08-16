@@ -10,7 +10,14 @@ export const createOrderSchema = z.object({
     billingAddressId: z.number().int().positive().optional(),
     paymentMethod: z
       .enum(
-        ["credit_card", "debit_card", "paypal", "stripe", "cash_on_delivery"],
+        [
+          "credit_card",
+          "debit_card",
+          "paypal",
+          "stripe",
+          "cash_on_delivery",
+          "razorpay",
+        ],
         {
           required_error: "Payment method is required",
           invalid_type_error: "Invalid payment method",
@@ -55,6 +62,10 @@ export const updateOrderStatusSchema = z.object({
         invalid_type_error: "Invalid status value",
       }
     ),
+    paymentStatus: z.enum(["pending", "completed", "failed", "refunded"], {
+      required_error: "Payment status is required",
+      invalid_type_error: "Invalid payment status value",
+    }),
   }),
 });
 
