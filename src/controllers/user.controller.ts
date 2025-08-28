@@ -45,20 +45,22 @@ const loginUser = async (req: Request, res: Response): Promise<any> => {
       });
     }
 
-    // Set token as HTTP-only cookie
-    res.cookie("auth_token", result.token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // HTTPS only in production
-      sameSite: "strict",
-      maxAge: 60 * 60 * 1000, // 1 hour (matches JWT expiry)
-      path: "/",
-    });
+    // // Set token as HTTP-only cookie
+    // res.cookie("auth_token", result.token, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === "production", // HTTPS only in production
+    //   sameSite: "strict",
+    //   maxAge: 60 * 60 * 1000, // 1 hour (matches JWT expiry)
+    //   path: "/",
+    // });
 
-    // Return response without token in body
-    res.json({
-      message: result.message,
-      user: { email: result.user?.email, name: result.user?.name },
-    });
+    // // Return response without token in body
+    // res.json({
+    //   message: result.message,
+    //   user: { email: result.user?.email, name: result.user?.name },
+    // });
+
+    res.json(result);
   } catch (err: any) {
     res.status(401).json({ error: err.message });
   }
@@ -73,20 +75,22 @@ const verifyOtp = async (req: Request, res: Response): Promise<any> => {
   try {
     const result = await verifyUserOtp(email, otp);
 
-    // Set token as HTTP-only cookie
-    res.cookie("auth_token", result.token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // HTTPS only in production
-      sameSite: "strict",
-      maxAge: 60 * 60 * 1000, // 1 hour (matches JWT expiry)
-      path: "/",
-    });
+    // // Set token as HTTP-only cookie
+    // res.cookie("auth_token", result.token, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === "production", // HTTPS only in production
+    //   sameSite: "strict",
+    //   maxAge: 60 * 60 * 1000, // 1 hour (matches JWT expiry)
+    //   path: "/",
+    // });
 
-    // Return response without token in body
-    res.status(200).json({
-      message: result.message,
-      user: { email: result.user?.email, name: result.user?.name },
-    });
+    // // Return response without token in body
+    // res.status(200).json({
+    //   message: result.message,
+    //   user: { email: result.user?.email, name: result.user?.name },
+    // });
+
+    res.status(200).json(result);
   } catch (err: any) {
     res.status(400).json({ error: err.message });
   }

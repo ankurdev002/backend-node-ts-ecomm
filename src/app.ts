@@ -25,12 +25,12 @@ import { USER_ROLES } from "./constants/user_roles";
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
-    credentials: true, // Allow cookies to be sent with requests
-  })
-);
+// app.use(
+//   cors({
+//     origin: process.env.FRONTEND_URL || "http://localhost:3000",
+//     credentials: true, // Allow cookies to be sent with requests
+//   })
+// );
 app.use(helmet());
 app.use(morgan("dev"));
 

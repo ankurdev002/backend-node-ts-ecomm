@@ -65,7 +65,11 @@ export const login = async (email: string, password: string) => {
     }
   );
 
-  return { message: "Login successful", token, user };
+  return {
+    message: "Login successful",
+    token,
+    // user
+  };
 };
 
 export const verifyUserOtp = async (email: string, otp: string) => {
@@ -87,7 +91,10 @@ export const verifyUserOtp = async (email: string, otp: string) => {
     }
   );
 
-  return { message: "User verified successfully!", token, user };
+  return {
+    message: "User verified successfully!",
+    // , token, user
+  };
 };
 
 export const resendUserOtp = async (email: string) => {
