@@ -29,6 +29,10 @@ const registerUser = async (req: Request, res: Response): Promise<any> => {
   }
 };
 
+/**
+ * Login user and return JWT token in Authorization header
+ * The token is automatically set in the response headers for frontend consumption
+ */
 const loginUser = async (req: Request, res: Response): Promise<any> => {
   const { email, password } = req.body;
 
@@ -40,17 +44,49 @@ const loginUser = async (req: Request, res: Response): Promise<any> => {
         email: (result as any).email,
       });
     }
-    res.json(result);
+
+    // Set token as HTTP-only cookie
+    res.cookie("auth_token", result.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // HTTPS only in production
+      sameSite: "strict",
+      maxAge: 60 * 60 * 1000, // 1 hour (matches JWT expiry)
+      path: "/",
+    });
+
+    // Return response without token in body
+    res.json({
+      message: result.message,
+      user: { email: result.user?.email, name: result.user?.name },
+    });
   } catch (err: any) {
     res.status(401).json({ error: err.message });
   }
 };
 
+/**
+ * Verify OTP and return JWT token in Authorization header
+ * The token is automatically set in the response headers for frontend consumption
+ */
 const verifyOtp = async (req: Request, res: Response): Promise<any> => {
   const { email, otp } = req.body;
   try {
     const result = await verifyUserOtp(email, otp);
-    res.status(200).json(result);
+
+    // Set token as HTTP-only cookie
+    res.cookie("auth_token", result.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // HTTPS only in production
+      sameSite: "strict",
+      maxAge: 60 * 60 * 1000, // 1 hour (matches JWT expiry)
+      path: "/",
+    });
+
+    // Return response without token in body
+    res.status(200).json({
+      message: result.message,
+      user: { email: result.user?.email, name: result.user?.name },
+    });
   } catch (err: any) {
     res.status(400).json({ error: err.message });
   }
@@ -135,6 +171,31 @@ const updateProfile = async (
   }
 };
 
+const logoutUser = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<any> => {
+  try {
+    // Clear the auth cookie
+    res.clearCookie("auth_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+    });
+
+    res.json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 export {
   getAllProductsList,
   loginUser,
@@ -143,4 +204,5 @@ export {
   verifyOtp,
   getProfile,
   updateProfile,
+  logoutUser,
 };

@@ -65,7 +65,7 @@ export const login = async (email: string, password: string) => {
     }
   );
 
-  return { message: "Login successful", token };
+  return { message: "Login successful", token, user };
 };
 
 export const verifyUserOtp = async (email: string, otp: string) => {
@@ -78,7 +78,16 @@ export const verifyUserOtp = async (email: string, otp: string) => {
   user.currentOtp = null;
   await user.save();
 
-  return { message: "User verified successfully!" };
+  // Generate token after successful verification
+  const token = jwt.sign(
+    { id: user.id, userType: user.userType },
+    process.env.JWT_SECRET!,
+    {
+      expiresIn: "1h",
+    }
+  );
+
+  return { message: "User verified successfully!", token, user };
 };
 
 export const resendUserOtp = async (email: string) => {

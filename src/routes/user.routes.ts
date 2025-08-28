@@ -8,6 +8,7 @@ import {
   verifyOtp,
   getProfile,
   updateProfile,
+  logoutUser,
 } from "../controllers/user.controller";
 import paginate from "../middleware/pagination.middleware";
 import { rateLimitLogin } from "../middleware/rateLimit.middleware";
@@ -45,6 +46,7 @@ router.post(
 // Profile routes
 router.get(ENDPOINTS.USER_ROUTE.USER_PROFILE, authenticateUser, getProfile);
 router.put(ENDPOINTS.USER_ROUTE.USER_PROFILE, authenticateUser, updateProfile);
+router.post(ENDPOINTS.USER_ROUTE.LOGOUT, authenticateUser, logoutUser);
 
 router.get(
   ENDPOINTS.USER_ROUTE.ALL_PRODUCT_LIST,

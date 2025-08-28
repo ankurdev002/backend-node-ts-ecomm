@@ -6,6 +6,7 @@ export const ENDPOINTS = {
     OTP_REQUEST: "/resend-otp",
     ALL_PRODUCT_LIST: "/all-products-list",
     USER_PROFILE: "/profile",
+    LOGOUT: "/logout",
   },
   ADMIN_ROUTE: {
     DASHBOARD: "/dashboard",

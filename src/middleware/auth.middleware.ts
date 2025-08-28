@@ -8,7 +8,10 @@ export const authenticateUser = async (
   res: Response,
   next: NextFunction
 ): Promise<any> => {
-  const token = req.header("Authorization")?.replace("Bearer ", "");
+  // First try to get token from cookie, then fallback to header for backward compatibility
+  const token =
+    req.cookies?.auth_token ||
+    req.header("Authorization")?.replace("Bearer ", "");
 
   if (!token)
     return res.status(401).json({ error: "Unauthorized: No token provided" });
