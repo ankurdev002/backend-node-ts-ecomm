@@ -15,13 +15,17 @@ export const authenticateUser = async (
   //   req.header("Authorization")?.replace("Bearer ", "");
 
   if (!token)
-    return res.status(401).json({ error: "Unauthorized: No token provided" });
+    return res
+      .status(401)
+      .json({ error: "Unauthorized: No token provided", UA: true });
 
   try {
     const decoded: any = jwt.verify(token, process.env.JWT_SECRET as string);
     req.user = decoded;
     next();
   } catch (error) {
-    return res.status(401).json({ error: "Unauthorized: Invalid token" });
+    return res
+      .status(401)
+      .json({ error: "Unauthorized: Invalid token", UA: true });
   }
 };
