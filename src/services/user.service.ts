@@ -68,12 +68,11 @@ export const login = async (email: string, password: string) => {
   return {
     message: "Login successful",
     token,
-    // user
+    user,
   };
 };
 
 export const verifyUserOtp = async (email: string, otp: string) => {
-  console.log(email, otp);
   const user = await User.findOne({ where: { email } });
   if (!user) throw new Error("User not found");
   if (user.currentOtp !== otp) throw new Error("Invalid OTP");
@@ -147,4 +146,9 @@ export const updateUserProfile = async (userId: number, updateData: any) => {
   });
 
   return updatedUser;
+};
+
+export const authUserStatus = async (id: number) => {
+  const user = await User.findOne({ where: { id } });
+  return user;
 };

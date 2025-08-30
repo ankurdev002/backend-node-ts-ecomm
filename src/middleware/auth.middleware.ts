@@ -8,7 +8,8 @@ export const authenticateUser = async (
   res: Response,
   next: NextFunction
 ): Promise<any> => {
-  const token = req.header("Authorization")?.replace("Bearer ", "");
+  const token =
+    req.cookies?.session || req.header("Authorization")?.replace("Bearer ", "");
   // First try to get token from cookie, then fallback to header for backward compatibility
   // const token =
   //   req.cookies?.auth_token ||
@@ -17,10 +18,10 @@ export const authenticateUser = async (
   if (!token)
     return res
       .status(401)
-      .json({ error: "Unauthorized: No token provided", UA: true });
+      .json({ error: "Unauthorized: No token provided", UA: false });
 
   try {
-    const decoded: any = jwt.verify(token, process.env.JWT_SECRET as string);
+    const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
     req.user = decoded;
     next();
   } catch (error) {

@@ -13,7 +13,10 @@ import {
   verifyUserOtp,
   getUserProfile,
   updateUserProfile,
+  authUserStatus,
 } from "../services/user.service";
+
+const COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 7; // 7 days
 
 const registerUser = async (req: Request, res: Response): Promise<any> => {
   // const errors = validationResult(req);
@@ -45,22 +48,21 @@ const loginUser = async (req: Request, res: Response): Promise<any> => {
       });
     }
 
-    // // Set token as HTTP-only cookie
-    // res.cookie("auth_token", result.token, {
-    //   httpOnly: true,
-    //   secure: process.env.NODE_ENV === "production", // HTTPS only in production
-    //   sameSite: "strict",
-    //   maxAge: 60 * 60 * 1000, // 1 hour (matches JWT expiry)
-    //   path: "/",
-    // });
+    // Set persistent HttpOnly cookie
+    res.cookie("session", result.token, {
+      httpOnly: true,
+      secure: true, // Only secure in production
+      sameSite: "strict", // Changed from strict to lax for better compatibility
+      maxAge: COOKIE_MAX_AGE, // cookie survives browser restart
+    });
 
     // // Return response without token in body
-    // res.json({
-    //   message: result.message,
-    //   user: { email: result.user?.email, name: result.user?.name },
-    // });
+    res.json({
+      message: result.message,
+      user: { email: result.user?.email, name: result.user?.name },
+    });
 
-    res.json(result);
+    // res.json(result);
   } catch (err: any) {
     res.status(401).json({ error: err.message });
   }
@@ -181,16 +183,46 @@ const logoutUser = async (
 ): Promise<any> => {
   try {
     // Clear the auth cookie
-    res.clearCookie("auth_token", {
+    res.clearCookie("session", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       sameSite: "strict",
-      path: "/",
     });
 
     res.json({
       success: true,
       message: "Logged out successfully",
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+//auth status
+const authStaus = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<any> => {
+  const user = req.user;
+  try {
+    if (!user) {
+      return res.status(400).json({ error: "Intialized", initiate: true });
+    }
+
+    const fetchedUser = await authUserStatus(user.id);
+    if (!fetchedUser) {
+      return res.status(401).json({ error: "User not found..." });
+    }
+
+    res.json({
+      user: {
+        id: fetchedUser?.id,
+        email: fetchedUser?.email,
+        name: fetchedUser?.name,
+      },
     });
   } catch (error: any) {
     res.status(500).json({
@@ -209,4 +241,5 @@ export {
   getProfile,
   updateProfile,
   logoutUser,
+  authStaus,
 };

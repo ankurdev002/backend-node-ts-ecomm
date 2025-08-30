@@ -9,6 +9,7 @@ import {
   getProfile,
   updateProfile,
   logoutUser,
+  authStaus,
 } from "../controllers/user.controller";
 import paginate from "../middleware/pagination.middleware";
 import { rateLimitLogin } from "../middleware/rateLimit.middleware";
@@ -53,5 +54,8 @@ router.get(
   paginate(Product, [], { isActive: true }),
   getAllProductsList
 );
+
+// check auth status
+router.get(ENDPOINTS.USER_ROUTE.AUTH_STATUS, authenticateUser, authStaus);
 
 export default router;

@@ -1,5 +1,6 @@
 export const ENDPOINTS = {
   USER_ROUTE: {
+    AUTH_STATUS: "/me",
     REGISTER: "/register",
     LOGIN: "/login",
     VERIFY: "/verify-otp",
